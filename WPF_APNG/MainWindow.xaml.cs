@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
+using System.Windows.Resources;
 
 namespace WPF_APNG
 {
@@ -28,8 +29,9 @@ namespace WPF_APNG
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            FileStream fs = File.OpenRead(@"D:\apng_spinfox.png");
-            BinaryReader br = new BinaryReader(fs);
+            StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
+            //FileStream fs = File.OpenRead(@"D:\apng_spinfox.png");
+            BinaryReader br = new BinaryReader(sri.Stream);
             byte[] sss = br.ReadBytes(8);
             System.Diagnostics.Trace.WriteLine(BitConverter.ToString(sss));
             while(true)
