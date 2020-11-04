@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
 using System.Windows.Resources;
+using APNG;
 
 namespace WPF_APNG
 {
@@ -29,12 +30,8 @@ namespace WPF_APNG
 
         void ParseIHDR(BinaryReader br, IHDR data)
         {
-            byte[] sss = br.ReadBytes(4);
-            Array.Reverse(sss);
-            data.Width = BitConverter.ToInt32(sss, 0);
-            sss = br.ReadBytes(4);
-            Array.Reverse(sss);
-            data.Height = BitConverter.ToInt32(sss, 0);
+            data.Width = br.ReadInt32LN();
+            data.Height = br.ReadInt32LN();
             data.BitDepth = br.ReadByte();
             data.ColorType = br.ReadByte();
             data.Compression = br.ReadByte();
@@ -50,23 +47,27 @@ namespace WPF_APNG
         {
             IHDR ihdr = new IHDR();
             StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
-            BinaryReader br = new BinaryReader(sri.Stream);
+            //BinaryReader br = new BinaryReader(sri.Stream);
+            //this.ParsePNG(br);
+            CPNG_Reader pngr = new CPNG_Reader();
+            pngr.Open(sri.Stream);
             
-            this.ParsePNG(br);
 
 
             FileStream fs = File.Create("test.png");
             BinaryWriter bw = new BinaryWriter(fs);
             bw.Write(this.m_PNGHeader);
-            this.WriteIHDR(bw, this.m_IHDR);
-            this.WriteIDAT(bw, idat);
+            this.WriteIHDR(bw, pngr.Chunks.FirstOrDefault(x=>x.ChunkType== ChunkTypes.IHDR) as IHDR);
+            this.WriteIDAT(bw, (pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IDAT) as IDAT).Data);
             this.WriteIEND(bw);
             fs.Close();
             fs.Dispose();
             FileStream fs1 = File.OpenRead(@"test.png");
-            br = new BinaryReader(fs1);
-            idat = null;
-            this.ParsePNG(br);
+            CPNG_Reader pngr1 = new CPNG_Reader();
+            pngr1.Open(fs1);
+            //br = new BinaryReader(fs1);
+            //idat = null;
+            //this.ParsePNG(br);
 
 
         }
@@ -78,9 +79,7 @@ namespace WPF_APNG
             System.Diagnostics.Trace.WriteLine(BitConverter.ToString(sss));
             while (true)
             {
-                sss = br.ReadBytes(4);
-                Array.Reverse(sss);
-                int len = BitConverter.ToInt32(sss, 0);
+                int len = br.ReadInt32LN();
                 sss = br.ReadBytes(4);
                 string id = Encoding.UTF8.GetString(sss);
 
@@ -94,39 +93,21 @@ namespace WPF_APNG
                         break;
                     case "acTL":
                         {
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int num_frames = BitConverter.ToInt32(sss, 0);
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int num_plays = BitConverter.ToInt32(sss, 0);
+                            int num_frames = br.ReadInt32LN();
+                            int num_plays = br.ReadInt32LN();
                             br.ReadBytes(4);
                             System.Diagnostics.Trace.WriteLine($"acTL num_frames:{num_frames} num_plays:{num_plays}");
                         }
                         break;
                     case "fcTL":
                         {
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int sequence_number = BitConverter.ToInt32(sss, 0);
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int width = BitConverter.ToInt32(sss, 0);
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int height = BitConverter.ToInt32(sss, 0);
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int x_offset = BitConverter.ToInt32(sss, 0);
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int y_offset = BitConverter.ToInt32(sss, 0);
-                            sss = br.ReadBytes(2);
-                            Array.Reverse(sss);
-                            int delay_num = BitConverter.ToInt16(sss, 0);
-                            sss = br.ReadBytes(2);
-                            Array.Reverse(sss);
-                            int delay_den = BitConverter.ToInt16(sss, 0);
+                            int sequence_number = br.ReadInt32LN();
+                            int width = br.ReadInt32LN();
+                            int height = br.ReadInt32LN();
+                            int x_offset = br.ReadInt32LN();
+                            int y_offset = br.ReadInt32LN();
+                            int delay_num = br.ReadInt16LN();
+                            int delay_den = br.ReadInt16LN();
                             byte dispose_op = br.ReadByte();
                             byte blend_op = br.ReadByte();
                             br.ReadBytes(4);
@@ -135,10 +116,7 @@ namespace WPF_APNG
                         break;
                     case "fdAT":
                         {
-
-                            sss = br.ReadBytes(4);
-                            Array.Reverse(sss);
-                            int sequence_number = BitConverter.ToInt32(sss, 0);
+                            int sequence_number = br.ReadInt32LN();
                             br.ReadBytes(len - 4);
                             br.ReadBytes(4);
                             //System.Diagnostics.Trace.WriteLine($"fdAT len:{len} sequence_number:{sequence_number}");
@@ -171,11 +149,6 @@ namespace WPF_APNG
                             ulong cr1c32 = crc32.GetCRC32Str("IEND");
                             byte[] bb = br.ReadBytes(4);
                             System.Diagnostics.Trace.WriteLine($"IEND len:{len} crc:{BitConverter.ToString(bb)}");
-
-
-
-
-
                             return;
                         }
                         break;
@@ -198,12 +171,8 @@ namespace WPF_APNG
             BinaryWriter w = new BinaryWriter(mm);
             byte[] sss = Encoding.UTF8.GetBytes("IHDR");
             w.Write(sss);
-            sss = BitConverter.GetBytes(data.Width);
-            Array.Reverse(sss);
-            w.Write(sss);
-            sss = BitConverter.GetBytes(data.Height);
-            Array.Reverse(sss);
-            w.Write(sss);
+            w.WriteLN(data.Width);
+            w.WriteLN(data.Height);
             w.Write(data.BitDepth);
             w.Write(data.ColorType);
             w.Write(data.Compression);
@@ -212,9 +181,7 @@ namespace WPF_APNG
 
             byte[] bb = mm.ToArray();
 
-            sss = BitConverter.GetBytes(bb.Length-4);
-            Array.Reverse(sss);
-            bw.Write(sss);
+            bw.WriteLN(bb.Length - 4);
             bw.Write(bb);
             CRC32Cls crc32 = new CRC32Cls();
             ulong crc_ulong = crc32.GetCRC32Str(bb);
@@ -232,9 +199,7 @@ namespace WPF_APNG
             w.Write(data);
             byte[] bb = mm.ToArray();
 
-            sss = BitConverter.GetBytes(bb.Length-4);
-            Array.Reverse(sss);
-            bw.Write(sss);
+            bw.WriteLN(bb.Length - 4);
             bw.Write(bb);
             CRC32Cls crc32 = new CRC32Cls();
             ulong crc_ulong = crc32.GetCRC32Str(bb);
@@ -250,11 +215,9 @@ namespace WPF_APNG
             byte[] sss = Encoding.UTF8.GetBytes("IEND");
             w.Write(sss);
             byte[] bb = mm.ToArray();
-            
 
-            sss = BitConverter.GetBytes(bb.Length-4);
-            Array.Reverse(sss);
-            bw.Write(sss);
+
+            bw.WriteLN(bb.Length - 4);
             bw.Write(bb);
             CRC32Cls crc32 = new CRC32Cls();
             ulong crc_ulong = crc32.GetCRC32Str(bb);
@@ -289,10 +252,8 @@ namespace WPF_APNG
             }
         }
 
-        //获取字符串的CRC32校验值
         public ulong GetCRC32Str(string sInputString)
         {
-            //生成码表
             GetCRC32Table();
             byte[] buffer = System.Text.ASCIIEncoding.ASCII.GetBytes(sInputString);
             ulong value = 0xffffffff;
@@ -304,10 +265,8 @@ namespace WPF_APNG
             return value ^ 0xffffffff;
         }
 
-        //获取字符串的CRC32校验值
         public ulong GetCRC32Str(byte[] data)
         {
-            //生成码表
             GetCRC32Table();
             byte[] buffer = data;
             ulong value = 0xffffffff;
@@ -320,42 +279,4 @@ namespace WPF_APNG
         }
     }
 
-    public class IHDR
-    {
-        //long pos = br.BaseStream.Position;
-        //sss = br.ReadBytes(4);
-        //                    Array.Reverse(sss);
-        //                     = BitConverter.ToInt32(sss, 0);
-        //sss = br.ReadBytes(4);
-        //                    Array.Reverse(sss);
-        //                    int height = BitConverter.ToInt32(sss, 0);
-        //byte bitdepth = br.ReadByte();
-        //byte colortype = br.ReadByte();
-        //byte compression = br.ReadByte();
-        //byte filter = br.ReadByte();
-        //byte interlace = br.ReadByte();
-        //pos = br.BaseStream.Position - pos;
-        //                    br.ReadBytes(4);
-        //                    System.Diagnostics.Trace.WriteLine($"IHDR width:{width} height:{height}");
-        public int Width { set; get; }
-        public int Height { set; get; }
-        public byte BitDepth { set; get; }
-        public byte ColorType { set; get; }
-        public byte Compression { set; get; }
-        public byte Filter { set; get; }
-        public byte Iterlace { set; get; }
-    }
-
-    public class CPngReader
-    {
-        public bool IsAPNG { set; get; }
-        public bool Open(string file)
-        {
-            bool result = true;
-
-            return result;
-        }
-
-
-    }
 }
