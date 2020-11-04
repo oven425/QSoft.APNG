@@ -10,6 +10,7 @@ namespace APNG
 {
     public class CPNG_Reader
     {
+        
         public List<Chunk> Chunks { set; get; } = new List<Chunk>();
         byte[] m_PNGHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
         public bool Open(Stream stream)
@@ -38,9 +39,6 @@ namespace APNG
                         break;
                     case "acTL":
                         {
-                            //int num_frames = br.ReadInt32LN();
-                            //int num_plays = br.ReadInt32LN();
-                            //br.ReadBytes(4);
                             acTL actl = new acTL();
                             actl.Pos = stream.Position;
                             actl.Size = len;
@@ -53,17 +51,6 @@ namespace APNG
                         break;
                     case "fcTL":
                         {
-                            //int sequence_number = br.ReadInt32LN();
-                            //int width = br.ReadInt32LN();
-                            //int height = br.ReadInt32LN();
-                            //int x_offset = br.ReadInt32LN();
-                            //int y_offset = br.ReadInt32LN();
-                            //int delay_num = br.ReadInt16LN();
-                            //int delay_den = br.ReadInt16LN();
-                            //byte dispose_op = br.ReadByte();
-                            //byte blend_op = br.ReadByte();
-                            //br.ReadBytes(4);
-
                             fcTL fcTL = new fcTL();
                             fcTL.Pos = stream.Position;
                             fcTL.Size = len;
@@ -78,14 +65,11 @@ namespace APNG
                             fcTL.Blend_op = br.ReadByte();
                             fcTL.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fcTL);
-                            //System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{sequence_number} width:{width} height:{height} delay_num:{delay_num} delay_den:{delay_den}");
+                            System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{fcTL.SequenceNumber} width:{fcTL.Width} height:{fcTL.Height} delay_num:{fcTL.Delay_Num} delay_den:{fcTL.Delay_Den}");
                         }
                         break;
                     case "fdAT":
                         {
-                            //int sequence_number = br.ReadInt32LN();
-                            //br.ReadBytes(len - 4);
-                            //br.ReadBytes(4);
                             fdAT fdat = new fdAT();
                             fdat.Pos = stream.Position;
                             fdat.Size = len;
@@ -93,7 +77,7 @@ namespace APNG
                             fdat.Data = br.ReadBytes(len-4);
                             fdat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fdat);
-                            //System.Diagnostics.Trace.WriteLine($"fdAT len:{len} sequence_number:{sequence_number}");
+                            System.Diagnostics.Trace.WriteLine($"fdAT len:{len} sequence_number:{fdat.SequenceNumber}");
                         }
                         break;
                     case "IDAT":
@@ -101,33 +85,15 @@ namespace APNG
                             IDAT idat = new IDAT();
                             idat.Pos = stream.Position;
                             idat.Size = len;
+                            //br.BaseStream.Seek(len, SeekOrigin.Current);
                             idat.Data = br.ReadBytes(len);
                             idat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(idat);
-                            //if (idat == null)
-                            //{
-                            //    idat = br.ReadBytes(len);
-
-                            //    byte[] crc = br.ReadBytes(4);
-                            //    System.Diagnostics.Trace.WriteLine($"IDAT len:{len} crc:{BitConverter.ToString(crc)}");
-                            //}
-                            //else
-                            //{
-                            //    br.ReadBytes(len + 4);
-                            //}
-
-                            //CRC32Cls crc32 = new CRC32Cls();
-                            //List<byte> vs = new List<byte>();
-                            //vs.AddRange(Encoding.UTF8.GetBytes("IDAT"));
-                            //vs.AddRange(idat);
-                            //ulong cr1c32 = crc32.GetCRC32Str(vs.ToArray());
+                            System.Diagnostics.Trace.WriteLine($"IDAT len:{len}");
                         }
                         break;
                     case "IEND":
                         {
-                            //CRC32Cls crc32 = new CRC32Cls();
-                            //ulong cr1c32 = crc32.GetCRC32Str("IEND");
-                            //byte[] bb = br.ReadBytes(4);
                             Chunk iend = new Chunk() { ChunkType = ChunkTypes.IEND };
                             iend.CRC = br.ReadBytes(4);
                             this.Chunks.Add(iend);
