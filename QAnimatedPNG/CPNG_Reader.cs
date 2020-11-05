@@ -1,18 +1,80 @@
-﻿using System;
+﻿using APNG.Tool;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WPF_APNG;
 
 namespace APNG
 {
-    public class CPNG_Reader
+    public class CPng_Reader
     {
         public List<Chunk> Chunks { set; get; } = new List<Chunk>();
         byte[] m_PNGHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
-        public bool Open(Stream stream)
+
+        public Dictionary<fcTL, MemoryStream> SpltAPng()
+        {
+            Dictionary<fcTL, MemoryStream> pngs = new Dictionary<fcTL, MemoryStream>();
+            IHDR ihdr = this.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR;
+
+            MemoryStream mm = new MemoryStream();
+            fcTL lastfctl = null;
+            for (int i = 0; i < this.Chunks.Count; i++)
+            {
+                switch (this.Chunks[i].ChunkType)
+                {
+                    case ChunkTypes.IDAT:
+                        {
+                            IDAT idat = this.Chunks[i] as IDAT;
+                            mm.Write(idat.Data, 0, idat.Data.Length);
+                        }
+                        break;
+                    case ChunkTypes.fcTL:
+                        {
+                            fcTL fctl = this.Chunks[i] as fcTL;
+                            if (mm.Length > 0)
+                            {
+                                MemoryStream ms = new MemoryStream();
+                                CPNG_Writer pngw_ = new CPNG_Writer();
+                                pngw_.Open(ms);
+                                pngw_.WriteIHDR(ihdr);
+                                pngw_.WriteIDAT(mm.ToArray());
+                                pngw_.WriteIEND();
+                                ms.Position = 0;
+                                pngs.Add(lastfctl, ms);
+                            }
+                            lastfctl = fctl;
+                            mm.SetLength(0);
+                        }
+                        break;
+                    case ChunkTypes.fdAT:
+                        {
+                            fdAT fdat = this.Chunks[i] as fdAT;
+                            mm.Write(fdat.Data, 0, fdat.Data.Length);
+                        }
+                        break;
+                    case ChunkTypes.IEND:
+                        { 
+                            MemoryStream ms = new MemoryStream();
+                            CPNG_Writer pngw_ = new CPNG_Writer();
+                            pngw_.Open(ms);
+                            pngw_.WriteIHDR(ihdr);
+                            pngw_.WriteIDAT(mm.ToArray());
+                            pngw_.WriteIEND();
+                            ms.Position = 0;
+                            pngs.Add(lastfctl, ms);
+                            mm.SetLength(0);
+                        }
+                        break;
+                }
+            }
+            mm.Close();
+            mm.Dispose();
+            return pngs;
+        }
+
+        public CPng_Reader Open(Stream stream)
         {
             BinaryReader br = new BinaryReader(stream);
             bool result = true;
@@ -111,8 +173,7 @@ namespace APNG
                         break;
                 }
             }
-            
-            return result;
+            return this;
         }
 
         void ParseIHDR(BinaryReader br, IHDR data)
