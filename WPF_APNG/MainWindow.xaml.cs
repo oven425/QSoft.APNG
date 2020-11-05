@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.IO;
 using System.Windows.Resources;
 using APNG;
+using System.Windows.Threading;
 
 namespace WPF_APNG
 {
@@ -27,55 +28,159 @@ namespace WPF_APNG
         {
             InitializeComponent();
         }
-
+        Dictionary<fcTL, MemoryStream> m_Apng = new Dictionary<fcTL, MemoryStream>();
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
-            //BinaryReader br = new BinaryReader(sri.Stream);
-            //this.ParsePNG(br);
             CPNG_Reader pngr = new CPNG_Reader();
             pngr.Open(sri.Stream);
 
             IHDR ihdr = pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR;
-            for(int i=0; i<pngr.Chunks.Count; i++)
+
+            MemoryStream mm = new MemoryStream();
+            fcTL lastfctl = null;
+            for (int i = 0; i < pngr.Chunks.Count; i++)
             {
-                switch(pngr.Chunks[i].ChunkType)
+                switch (pngr.Chunks[i].ChunkType)
                 {
+                    case ChunkTypes.IDAT:
+                        {
+                            IDAT idat = pngr.Chunks[i] as IDAT;
+                            mm.Write(idat.Data, 0, idat.Data.Length);
+                        }
+                        break;
                     case ChunkTypes.fcTL:
                         {
+                            fcTL fctl = pngr.Chunks[i] as fcTL;
+                            if (mm.Length > 0)
+                            {
+                                //Stream fs_ = File.Create($"{i}.png");
+                                //CPNG_Writer pngw_ = new CPNG_Writer();
+                                //pngw_.Open(fs_);
+                                //pngw_.WriteIHDR(ihdr);
 
+                                //pngw_.WriteIDAT(mm.ToArray());
+                                //pngw_.WriteIEND();
+                                //fs_.Close();
+                                //fs_.Dispose();
+
+
+                                MemoryStream ms = new MemoryStream();
+                                CPNG_Writer pngw_ = new CPNG_Writer();
+                                pngw_.Open(ms);
+                                pngw_.WriteIHDR(ihdr);
+                                pngw_.WriteIDAT(mm.ToArray());
+                                pngw_.WriteIEND();
+                                ms.Position = 0;
+                                this.m_Apng.Add(lastfctl, ms);
+                            }
+                            lastfctl = fctl;
+                            mm.SetLength(0);
                         }
                         break;
                     case ChunkTypes.fdAT:
                         {
                             fdAT fdat = pngr.Chunks[i] as fdAT;
-                            FileStream fs_ = File.Create($"{fdat.SequenceNumber}test.png");
-                            CPNG_Writer pngw_ = new CPNG_Writer();
-                            pngw_.Open(fs_);
-                            pngw_.WriteIHDR(ihdr);
+                            mm.Write(fdat.Data, 0, fdat.Data.Length);
+                        }
+                        break;
+                    case ChunkTypes.IEND:
+                        {
+                            //FileStream fs_ = File.Create($"{i}.png");
+                            //CPNG_Writer pngw_ = new CPNG_Writer();
+                            //pngw_.Open(fs_);
+                            //pngw_.WriteIHDR(ihdr);
 
-                            pngw_.WriteIDAT(fdat.Data);
+                            //pngw_.WriteIDAT(mm.ToArray());
+                            //pngw_.WriteIEND();
+                            //fs_.Close();
+                            //fs_.Dispose();
+
+
+                            MemoryStream ms = new MemoryStream();
+                            CPNG_Writer pngw_ = new CPNG_Writer();
+                            pngw_.Open(ms);
+                            pngw_.WriteIHDR(ihdr);
+                            pngw_.WriteIDAT(mm.ToArray());
                             pngw_.WriteIEND();
-                            fs_.Close();
-                            fs_.Dispose();
+                            ms.Position = 0;
+                            this.m_Apng.Add(lastfctl, ms);
+                            mm.SetLength(0);
+
+                            
                         }
                         break;
                 }
             }
 
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(20);
+            timer.Tick += Timer_Tick;
+            timer.Start();
+            //DrawingGroup imageDrawings = new DrawingGroup();
+            //// Create a 100 by 100 image with an upper-left point of (75,75).
+            //ImageDrawing bigKiwi = new ImageDrawing();
+            //bigKiwi.Rect = new Rect(0, 0, 843, 486);
+            //bigKiwi.ImageSource = new BitmapImage(
+            //    new Uri(@"C:\Users\ben_hsu\Pictures\1.png"));
 
-            FileStream fs = File.Create("test.png");
-            CPNG_Writer pngw = new CPNG_Writer();
-            pngw.Open(fs);
-            pngw.WriteIHDR(pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR);
-            
-            pngw.WriteIDAT((pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IDAT) as IDAT).Data);
-            pngw.WriteIEND();
-            fs.Close();
-            fs.Dispose();
-            FileStream fs1 = File.OpenRead(@"test.png");
-            CPNG_Reader pngr1 = new CPNG_Reader();
-            pngr1.Open(fs1);
+            //imageDrawings.Children.Add(bigKiwi);
+
+            //// Create a 25 by 25 image with an upper-left point of (0,150).
+            //ImageDrawing smallKiwi1 = new ImageDrawing();
+            //smallKiwi1.Rect = new Rect(0, 0, 843, 486);
+            //smallKiwi1.ImageSource = new BitmapImage(new Uri(@"C:\Users\ben_hsu\Pictures\2.png"));
+            //imageDrawings.Children.Add(smallKiwi1);
+
+            //// Create a 25 by 25 image with an upper-left point of (150,0).
+            //ImageDrawing smallKiwi2 = new ImageDrawing();
+            //smallKiwi2.Rect = new Rect(0, 0, 843, 486);
+            //smallKiwi2.ImageSource = new BitmapImage(new Uri(@"C:\Users\ben_hsu\Pictures\3.png"));
+            //imageDrawings.Children.Add(smallKiwi2);
+
+            //// Create a 75 by 75 image with an upper-left point of (0,0).
+            //ImageDrawing wholeKiwi = new ImageDrawing();
+            //wholeKiwi.Rect = new Rect(0, 0, 843, 486);
+            //wholeKiwi.ImageSource = new BitmapImage(new Uri(@"C:\Users\ben_hsu\Pictures\4.png"));
+            //imageDrawings.Children.Add(wholeKiwi);
+
+            ////
+            //// Use a DrawingImage and an Image control to
+            //// display the drawings.
+            ////
+            //DrawingImage drawingImageSource = new DrawingImage(imageDrawings);
+            //this.img.Source = drawingImageSource;
+
+
+            //FileStream fs = File.Create("test.png");
+            //CPNG_Writer pngw = new CPNG_Writer();
+            //pngw.Open(fs);
+            //pngw.WriteIHDR(pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR);
+
+            //pngw.WriteIDAT((pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IDAT) as IDAT).Data);
+            //pngw.WriteIEND();
+            //fs.Close();
+            //fs.Dispose();
+            //FileStream fs1 = File.OpenRead(@"test.png");
+            //CPNG_Reader pngr1 = new CPNG_Reader();
+            //pngr1.Open(fs1);
+        }
+
+        int index = 0;
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            Stream stream = this.m_Apng.ElementAt(index).Value;
+            stream.Position = 0;
+            BitmapImage bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.StreamSource = stream;
+            bmp.EndInit();
+            this.img.Source = bmp;
+            index = index + 1;
+            if (index >= this.m_Apng.Count)
+            {
+                index = 0;
+            }
         }
     }
 

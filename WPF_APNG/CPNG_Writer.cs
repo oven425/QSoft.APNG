@@ -11,7 +11,7 @@ namespace APNG
     public class CPNG_Writer
     {
         BinaryWriter m_Bw;
-        //MemoryStream m_Temp = new MemoryStream();
+        MemoryStream m_Temp = new MemoryStream();
         byte[] m_PNGHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
         public bool Open(Stream stream)
         {
@@ -22,8 +22,8 @@ namespace APNG
 
         public bool WriteIHDR(IHDR data)
         {
-            MemoryStream mm = new MemoryStream();
-            BinaryWriter w = new BinaryWriter(mm);
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
             byte[] sss = Encoding.UTF8.GetBytes("IHDR");
             w.Write(sss);
             w.WriteLN(data.Width);
@@ -34,7 +34,7 @@ namespace APNG
             w.Write(data.Filter);
             w.Write(data.Iterlace);
 
-            byte[] bb = mm.ToArray();
+            byte[] bb = this.m_Temp.ToArray();
 
             this.m_Bw.WriteLN(bb.Length - 4);
             this.m_Bw.Write(bb);
@@ -48,12 +48,12 @@ namespace APNG
 
         public void WriteIDAT(byte[] data)
         {
-            MemoryStream mm = new MemoryStream();
-            BinaryWriter w = new BinaryWriter(mm);
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
             byte[] sss = Encoding.UTF8.GetBytes("IDAT");
             w.Write(sss);
             w.Write(data);
-            byte[] bb = mm.ToArray();
+            byte[] bb = this.m_Temp.ToArray();
 
             this.m_Bw.WriteLN(bb.Length - 4);
             this.m_Bw.Write(bb);
@@ -66,11 +66,11 @@ namespace APNG
 
         public void WriteIEND()
         {
-            MemoryStream mm = new MemoryStream();
-            BinaryWriter w = new BinaryWriter(mm);
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
             byte[] sss = Encoding.UTF8.GetBytes("IEND");
             w.Write(sss);
-            byte[] bb = mm.ToArray();
+            byte[] bb = this.m_Temp.ToArray();
 
 
             this.m_Bw.WriteLN(bb.Length - 4);

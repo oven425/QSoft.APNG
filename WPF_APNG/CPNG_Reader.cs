@@ -10,7 +10,6 @@ namespace APNG
 {
     public class CPNG_Reader
     {
-        
         public List<Chunk> Chunks { set; get; } = new List<Chunk>();
         byte[] m_PNGHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
         public bool Open(Stream stream)
@@ -21,6 +20,10 @@ namespace APNG
             System.Diagnostics.Trace.WriteLine(BitConverter.ToString(sss));
             while (true)
             {
+                if((stream.Length - stream.Position) <4)
+                {
+                    break;
+                }
                 int len = br.ReadInt32LN();
                 sss = br.ReadBytes(4);
                 string id = Encoding.UTF8.GetString(sss);
@@ -72,12 +75,12 @@ namespace APNG
                         {
                             fdAT fdat = new fdAT();
                             fdat.Pos = stream.Position;
-                            fdat.Size = len;
+                            fdat.Size = len-4;
                             fdat.SequenceNumber = br.ReadInt32LN();
                             fdat.Data = br.ReadBytes(len-4);
                             fdat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fdat);
-                            System.Diagnostics.Trace.WriteLine($"fdAT len:{len} sequence_number:{fdat.SequenceNumber}");
+                            System.Diagnostics.Trace.WriteLine($"fdAT len:{fdat.Size} sequence_number:{fdat.SequenceNumber}");
                         }
                         break;
                     case "IDAT":
@@ -98,7 +101,6 @@ namespace APNG
                             iend.CRC = br.ReadBytes(4);
                             this.Chunks.Add(iend);
                             System.Diagnostics.Trace.WriteLine($"IEND len:{len} crc:{BitConverter.ToString(iend.CRC)}");
-                            return true;
                         }
                         break;
                     default:
@@ -109,6 +111,7 @@ namespace APNG
                         break;
                 }
             }
+            
             return result;
         }
 
