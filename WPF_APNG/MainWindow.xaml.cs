@@ -113,6 +113,14 @@ namespace WPF_APNG
                                 short value = br.ReadInt16LN();
                                 int offset1 = br.ReadInt16LN();
                                 short end = br.ReadInt16LN();
+                                short sub = br.ReadInt16LN();
+                                sub = br.ReadInt16LN();
+                                sub = br.ReadInt16LN();
+                                sub = br.ReadInt16LN();
+                                sub = br.ReadInt16LN();
+                                sub = br.ReadInt16LN();
+                                sub = br.ReadInt16LN();
+                                sub = br.ReadInt16LN();
                             }
                         }
                         break;
