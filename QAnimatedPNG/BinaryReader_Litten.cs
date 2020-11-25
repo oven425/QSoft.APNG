@@ -9,6 +9,12 @@ namespace APNG.Tool
 {
     public static class BinaryReader_Litten
     {
+        public static byte[] ReadBytesLN(this BinaryReader src, int count)
+        {
+            byte[] bb = src.ReadBytes(count);
+            Array.Reverse(bb);
+            return bb;
+        }
         public static short ReadInt16LN(this BinaryReader src)
         {
             byte[] buf = src.ReadBytes(2);

@@ -49,25 +49,73 @@ namespace WPF_APNG
             //            timer.Start();
 
 
-            StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/photo.jpg", UriKind.Absolute));
-            BinaryReader br = new BinaryReader(sri.Stream);
+            //StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/photo.jpg", UriKind.Absolute));
+            //JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+            //BitmapImage bmp = new BitmapImage();
+            //bmp.BeginInit();
+            //bmp.StreamSource = sri.Stream;
+            //bmp.EndInit();
+            //encoder.Rotation = Rotation.Rotate90;
+            //encoder.Frames.Add(BitmapFrame.Create(bmp));
+            //using (Stream fs = File.Create("rotate90.jpg"))
+            //{
+            //    encoder.Save(fs);
+            //}
+                
+            BinaryReader br = new BinaryReader(File.Open("rotate90.jpg", FileMode.Open));
             byte[] header = br.ReadBytes(2);
             while(true)
             {
                 header = br.ReadBytes(2);
                 string header_str = BitConverter.ToString(header);
+                System.Diagnostics.Trace.WriteLine(header_str);
                 short len = br.ReadInt16LN();
                 switch (header_str)
                 {
-                    //case "FF-E0":
-                    //    {
-                    //        //string Identifier = Encoding.UTF8.GetString(br.ReadBytes(5));
-                    //        //byte[] version = br.ReadBytes(2);
-                    //        //byte Density_units = br.ReadByte();
-                    //        //short Xdensity = br.ReadInt16LN();
-                    //        //short Ydensity = br.ReadInt16LN();
-                    //    }
-                    //    break;
+                    case "FF-E0":
+                        {
+                            string Identifier = Encoding.UTF8.GetString(br.ReadBytes(5));
+                            byte[] version = br.ReadBytes(2);
+                            byte Density_units = br.ReadByte();
+                            short Xdensity = br.ReadInt16LN();
+                            short Ydensity = br.ReadInt16LN();
+                            byte XThumbnail = br.ReadByte();
+                            byte YThumbnail = br.ReadByte();
+                        }
+                        break;
+                    case "FF-C0":
+                        {
+                            br.ReadByte();
+                            byte[] widths = br.ReadBytes(2);
+                            byte[] heights = br.ReadBytes(2);
+                            int width = widths[0] * 256 + widths[1];
+                            int height = heights[0] * 256 + heights[1];
+                            br.ReadByte();
+                            br.ReadBytes(3);
+                            br.ReadBytes(3);
+                            br.ReadBytes(3);
+                        }
+                        break;
+                    case "FF-E1":
+                        {
+                            
+                            string exif = Encoding.UTF8.GetString(br.ReadBytes(4));
+                            byte[] bb = br.ReadBytes(2);
+                            string mmll = Encoding.UTF8.GetString(br.ReadBytes(2));
+                            string version = BitConverter.ToString(br.ReadBytesLN(2));
+                            int offset = br.ReadInt32LN();
+                            short ifd_count = br.ReadInt16LN();
+                            for(int i=0; i<ifd_count; i++)
+                            {
+                                short tag = br.ReadInt16LN();
+                                short type = br.ReadInt16LN();
+                                int len1 = br.ReadInt32LN();
+                                short value = br.ReadInt16LN();
+                                int offset1 = br.ReadInt16LN();
+                                short end = br.ReadInt16LN();
+                            }
+                        }
+                        break;
                     case "FF-DB"://Define Quantization Table
                     case "FF-C4"://Define Huffman Table
                     default:
@@ -76,7 +124,7 @@ namespace WPF_APNG
                         }
                         break;
                 }
-                System.Diagnostics.Trace.WriteLine(header_str);
+                
                 
                 
             }
