@@ -22,7 +22,7 @@ namespace APNG.Tool
             return BitConverter.ToInt16(buf, 0);
         }
 
-        public static ulong ReadUInt16LN(this BinaryReader src)
+        public static ushort ReadUInt16LN(this BinaryReader src)
         {
             byte[] buf = src.ReadBytes(2);
             Array.Reverse(buf);

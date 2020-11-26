@@ -61,7 +61,9 @@ namespace WPF_APNG
             //{
             //    encoder.Save(fs);
             //}
-                
+            //BinaryWriter bw = new BinaryWriter(File.Open("rotate90.jpg", FileMode.Open));
+            //bw.BaseStream.Position = 48;
+            //bw.WriteLN(1);
             BinaryReader br = new BinaryReader(File.Open("rotate90.jpg", FileMode.Open));
             byte[] header = br.ReadBytes(2);
             while(true)
@@ -101,26 +103,38 @@ namespace WPF_APNG
                             
                             string exif = Encoding.UTF8.GetString(br.ReadBytes(4));
                             byte[] bb = br.ReadBytes(2);
+                            long exifbegin = br.BaseStream.Position;
                             string mmll = Encoding.UTF8.GetString(br.ReadBytes(2));
                             string version = BitConverter.ToString(br.ReadBytesLN(2));
                             int offset = br.ReadInt32LN();
                             short ifd_count = br.ReadInt16LN();
                             for(int i=0; i<ifd_count; i++)
                             {
-                                short tag = br.ReadInt16LN();
+                                ushort tag = br.ReadUInt16LN();
                                 short type = br.ReadInt16LN();
-                                int len1 = br.ReadInt32LN();
-                                short value = br.ReadInt16LN();
-                                int offset1 = br.ReadInt16LN();
-                                short end = br.ReadInt16LN();
-                                short sub = br.ReadInt16LN();
-                                sub = br.ReadInt16LN();
-                                sub = br.ReadInt16LN();
-                                sub = br.ReadInt16LN();
-                                sub = br.ReadInt16LN();
-                                sub = br.ReadInt16LN();
-                                sub = br.ReadInt16LN();
-                                sub = br.ReadInt16LN();
+                                int count = br.ReadInt32LN();
+                                
+                                int offset1 = br.ReadInt32LN();
+                                if(tag == 0x8769)
+                                {
+                                    long oldpos = br.BaseStream.Position;
+                                    br.BaseStream.Position = exifbegin + offset1;
+                                    int subcount = br.ReadUInt16LN();
+                                    tag = br.ReadUInt16LN();
+                                    type = br.ReadInt16LN();
+                                    count = br.ReadInt32LN();
+                                    offset1 = br.ReadInt32LN();
+
+                                    br.BaseStream.Position = oldpos;
+                                }
+                                else
+                                {
+                                    long oldpos = br.BaseStream.Position;
+                                    br.BaseStream.Position = exifbegin + offset1;
+                                    byte[]rr = br.ReadBytes(3);
+
+                                    br.BaseStream.Position = oldpos;
+                                }
                             }
                         }
                         break;
