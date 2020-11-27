@@ -103,39 +103,55 @@ namespace WPF_APNG
                             
                             string exif = Encoding.UTF8.GetString(br.ReadBytes(4));
                             byte[] bb = br.ReadBytes(2);
-                            long exifbegin = br.BaseStream.Position;
-                            string mmll = Encoding.UTF8.GetString(br.ReadBytes(2));
-                            string version = BitConverter.ToString(br.ReadBytesLN(2));
-                            int offset = br.ReadInt32LN();
-                            short ifd_count = br.ReadInt16LN();
-                            for(int i=0; i<ifd_count; i++)
+                            while(true)
                             {
-                                ushort tag = br.ReadUInt16LN();
-                                short type = br.ReadInt16LN();
-                                int count = br.ReadInt32LN();
-                                
-                                int offset1 = br.ReadInt32LN();
-                                if(tag == 0x8769)
+                                long exifbegin = br.BaseStream.Position;
+                                string mmll = Encoding.UTF8.GetString(br.ReadBytes(2));
+                                string version = BitConverter.ToString(br.ReadBytesLN(2));
+                                int offset = br.ReadInt32LN();
+                                short ifd_count = br.ReadInt16LN();
+                                for (int i = 0; i < ifd_count; i++)
                                 {
-                                    long oldpos = br.BaseStream.Position;
-                                    br.BaseStream.Position = exifbegin + offset1;
-                                    int subcount = br.ReadUInt16LN();
-                                    tag = br.ReadUInt16LN();
-                                    type = br.ReadInt16LN();
-                                    count = br.ReadInt32LN();
-                                    offset1 = br.ReadInt32LN();
+                                    ushort tag = br.ReadUInt16LN();
+                                    short type = br.ReadInt16LN();
+                                    int count = br.ReadInt32LN();
+                                    //byte[] bufs = br.ReadBytes(4);
+                                    switch (type)
+                                    {
 
-                                    br.BaseStream.Position = oldpos;
-                                }
-                                else
-                                {
-                                    long oldpos = br.BaseStream.Position;
-                                    br.BaseStream.Position = exifbegin + offset1;
-                                    byte[]rr = br.ReadBytes(3);
+                                        case 3:
+                                            {
+                                                short ss = br.ReadInt16LN();
+                                                br.ReadBytes(2);
+                                            }
+                                            break;
+                                        case 4:
+                                            {
+                                                int ii = br.ReadInt32LN();
+                                            }
+                                            break;
+                                        case 7:
+                                            {
 
-                                    br.BaseStream.Position = oldpos;
+                                                int offset1 = br.ReadInt32LN();
+                                                long oldpos = br.BaseStream.Position;
+                                                br.BaseStream.Position = exifbegin + offset1;
+                                                byte[] bbs = br.ReadBytes(count);
+                                                br.BaseStream.Position = oldpos;
+                                            }
+                                            break;
+                                        default:
+                                            {
+
+                                            }
+                                            break;
+                                    }
+
+
                                 }
+                                int nextifd = br.ReadInt32LN();
                             }
+                            
                         }
                         break;
                     case "FF-DB"://Define Quantization Table
@@ -151,6 +167,10 @@ namespace WPF_APNG
                 
             }
         }
+
+        
+
+        
 
         int index = 0;
 #if TestD3DImage
