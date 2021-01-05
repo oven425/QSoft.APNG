@@ -6,6 +6,16 @@ using System.Threading.Tasks;
 
 namespace APNG
 {
+    public class pHYs : Chunk
+    {
+        public pHYs()
+        {
+            this.ChunkType = ChunkTypes.pHYs;
+        }
+        public int X { set; get; }
+        public int Y { set; get; }
+        public byte Unit { set; get; }
+    }
     public class IDAT: Chunk
     {
         public IDAT()
@@ -69,6 +79,7 @@ namespace APNG
     public enum ChunkTypes
     {
         IDAT,
+        pHYs,
         IHDR,
         acTL,
         fcTL,

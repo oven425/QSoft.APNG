@@ -165,6 +165,18 @@ namespace APNG
                             System.Diagnostics.Trace.WriteLine($"IEND len:{len} crc:{BitConverter.ToString(iend.CRC)}");
                         }
                         break;
+                    case "pHYs":
+                        {
+                            pHYs phys = new pHYs();
+                            phys.Pos = stream.Position;
+                            phys.Size = len;
+                            phys.X = br.ReadInt32LN();
+                            phys.Y = br.ReadInt32LN();
+                            phys.Unit = br.ReadByte();
+                            this.Chunks.Add(phys);
+                            phys.CRC = br.ReadBytes(4);
+                        }
+                        break;
                     default:
                         {
                             System.Diagnostics.Trace.WriteLine(id);

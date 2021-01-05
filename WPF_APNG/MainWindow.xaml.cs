@@ -33,139 +33,26 @@ namespace WPF_APNG
 #endif
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //            StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
-            //            CPng_Reader pngr = new CPng_Reader();
-            //            this.m_Apng = pngr.Open(sri.Stream).SpltAPng();
-            //#if TestD3DImage
-            //            IHDR ihdr = pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR;
-            //            this.m_D3DImage.Open(ihdr.Width, ihdr.Height);
-            //            this.img.Source = this.m_D3DImage;
-            //#endif
+            StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
+            CPng_Reader pngr = new CPng_Reader();
+            //this.m_Apng = pngr.Open(sri.Stream).SpltAPng();
+            this.m_Apng = pngr.Open(File.OpenRead("D:\\sample.png")).SpltAPng();
+#if TestD3DImage
+                        IHDR ihdr = pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR;
+                        this.m_D3DImage.Open(ihdr.Width, ihdr.Height);
+                        this.img.Source = this.m_D3DImage;
+#endif
 
 
-            //            DispatcherTimer timer = new DispatcherTimer();
-            //            timer.Interval = TimeSpan.FromMilliseconds(5);
-            //            timer.Tick += Timer_Tick;
-            //            timer.Start();
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(5);
+            timer.Tick += Timer_Tick;
+            timer.Start();
 
 
-            //StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/photo.jpg", UriKind.Absolute));
-            //JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-            //BitmapImage bmp = new BitmapImage();
-            //bmp.BeginInit();
-            //bmp.StreamSource = sri.Stream;
-            //bmp.EndInit();
-            //encoder.Rotation = Rotation.Rotate90;
-            //encoder.Frames.Add(BitmapFrame.Create(bmp));
-            //using (Stream fs = File.Create("rotate90.jpg"))
-            //{
-            //    encoder.Save(fs);
-            //}
-            //BinaryWriter bw = new BinaryWriter(File.Open("rotate90.jpg", FileMode.Open));
-            //bw.BaseStream.Position = 48;
-            //bw.WriteLN(1);
-            BinaryReader br = new BinaryReader(File.Open("rotate90.jpg", FileMode.Open));
-            byte[] header = br.ReadBytes(2);
-            while(true)
-            {
-                header = br.ReadBytes(2);
-                string header_str = BitConverter.ToString(header);
-                System.Diagnostics.Trace.WriteLine(header_str);
-                short len = br.ReadInt16LN();
-                switch (header_str)
-                {
-                    case "FF-E0":
-                        {
-                            string Identifier = Encoding.UTF8.GetString(br.ReadBytes(5));
-                            byte[] version = br.ReadBytes(2);
-                            byte Density_units = br.ReadByte();
-                            short Xdensity = br.ReadInt16LN();
-                            short Ydensity = br.ReadInt16LN();
-                            byte XThumbnail = br.ReadByte();
-                            byte YThumbnail = br.ReadByte();
-                        }
-                        break;
-                    case "FF-C0":
-                        {
-                            br.ReadByte();
-                            byte[] widths = br.ReadBytes(2);
-                            byte[] heights = br.ReadBytes(2);
-                            int width = widths[0] * 256 + widths[1];
-                            int height = heights[0] * 256 + heights[1];
-                            br.ReadByte();
-                            br.ReadBytes(3);
-                            br.ReadBytes(3);
-                            br.ReadBytes(3);
-                        }
-                        break;
-                    case "FF-E1":
-                        {
-                            
-                            string exif = Encoding.UTF8.GetString(br.ReadBytes(4));
-                            byte[] bb = br.ReadBytes(2);
-                            while(true)
-                            {
-                                long exifbegin = br.BaseStream.Position;
-                                string mmll = Encoding.UTF8.GetString(br.ReadBytes(2));
-                                string version = BitConverter.ToString(br.ReadBytesLN(2));
-                                int offset = br.ReadInt32LN();
-                                short ifd_count = br.ReadInt16LN();
-                                for (int i = 0; i < ifd_count; i++)
-                                {
-                                    ushort tag = br.ReadUInt16LN();
-                                    short type = br.ReadInt16LN();
-                                    int count = br.ReadInt32LN();
-                                    //byte[] bufs = br.ReadBytes(4);
-                                    switch (type)
-                                    {
-
-                                        case 3:
-                                            {
-                                                short ss = br.ReadInt16LN();
-                                                br.ReadBytes(2);
-                                            }
-                                            break;
-                                        case 4:
-                                            {
-                                                int ii = br.ReadInt32LN();
-                                            }
-                                            break;
-                                        case 7:
-                                            {
-
-                                                int offset1 = br.ReadInt32LN();
-                                                long oldpos = br.BaseStream.Position;
-                                                br.BaseStream.Position = exifbegin + offset1;
-                                                byte[] bbs = br.ReadBytes(count);
-                                                br.BaseStream.Position = oldpos;
-                                            }
-                                            break;
-                                        default:
-                                            {
-
-                                            }
-                                            break;
-                                    }
 
 
-                                }
-                                int nextifd = br.ReadInt32LN();
-                            }
-                            
-                        }
-                        break;
-                    case "FF-DB"://Define Quantization Table
-                    case "FF-C4"://Define Huffman Table
-                    default:
-                        {
-                            header = br.ReadBytes(len - 2);
-                        }
-                        break;
-                }
-                
-                
-                
-            }
+
         }
 
         
