@@ -63,7 +63,11 @@ namespace APNG
                             pngw_.WriteIDAT(mm.ToArray());
                             pngw_.WriteIEND();
                             ms.Position = 0;
-                            pngs.Add(lastfctl, ms);
+                            if(lastfctl != null)
+                            {
+                                pngs.Add(lastfctl, ms);
+                            }
+                            
                             mm.SetLength(0);
                         }
                         break;

@@ -7,8 +7,29 @@
         mc:Ignorable="d"
         Loaded="Window_Loaded"
         Title="MainWindow" Height="450" Width="800">
-    <StackPanel>
-        <Button x:Name="button_test">Test</Button>
-        <Image x:Name="img"/>
-    </StackPanel>
+    <Grid>
+        <StackPanel >
+            <Button x:Name="button_test" Click="Button_test_Click">Test</Button>
+            <Image x:Name="img"/>
+            <ScrollViewer Width="100" Height="100" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden">
+                <Grid Width="2900">
+                    <Image  Stretch="None"
+                Source="heart.png"
+                Height="100"
+                Loaded="Image_Loaded"
+                >
+                        <Image.RenderTransform>
+                            <TranslateTransform X="0"/>
+                        </Image.RenderTransform>
+                        <!--<Image.Clip>
+                    <RectangleGeometry Rect="0 0 100 100"/>
+                </Image.Clip>-->
+                    </Image>
+                </Grid>
+            </ScrollViewer>
+        </StackPanel>
+        
+       
+    </Grid>
+    
 </Window>

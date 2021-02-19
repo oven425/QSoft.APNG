@@ -14,6 +14,10 @@ using SharpDX;
 using System.Linq;
 using APNG.Tool;
 using System.Text;
+using System.Windows.Controls;
+using System.Windows.Media.Animation;
+using System.Windows.Media;
+using System.Threading.Tasks;
 
 namespace WPF_APNG
 {
@@ -31,8 +35,12 @@ namespace WPF_APNG
 #if TestD3DImage
         CD3DImage m_D3DImage = new CD3DImage();
 #endif
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        Storyboard _checkStoryboard;
+        async private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            
+            
+            return;
             StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
             CPng_Reader pngr = new CPng_Reader();
             //this.m_Apng = pngr.Open(sri.Stream).SpltAPng();
@@ -67,6 +75,7 @@ namespace WPF_APNG
 #endif
         private void Timer_Tick(object sender, EventArgs e)
         {
+            return;
 #if NET5
 #endif
 #if TestD3DImage
@@ -112,6 +121,39 @@ namespace WPF_APNG
                 index = 0;
             }
 #endif
+        }
+
+        async private void Image_Loaded(object sender, RoutedEventArgs e)
+        {
+            TranslateTransform _heartTransform = (sender as Image).RenderTransform as TranslateTransform;
+            _checkStoryboard = new Storyboard();
+
+            var keyFrames = new DoubleAnimationUsingKeyFrames();
+            Storyboard.SetTarget(keyFrames, sender as Image);
+            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("RenderTransform.(TranslateTransform.X)"));
+            TimeSpan start = TimeSpan.Zero;
+            for (var i = 0; i < 28; i++)
+            {
+                var keyFrame = new DiscreteDoubleKeyFrame
+                {
+                    KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
+                    //KeyTime = TimeSpan.FromSeconds(1),
+                    Value = -(i + 1) * 100
+                };
+                keyFrames.KeyFrames.Add(keyFrame);
+            }
+
+            _checkStoryboard.Children.Add(keyFrames);
+
+            _checkStoryboard.FillBehavior = FillBehavior.HoldEnd;
+
+            await Task.Delay(1000);
+            //_checkStoryboard.Begin();
+        }
+
+        private void Button_test_Click(object sender, RoutedEventArgs e)
+        {
+            _checkStoryboard.Begin();
         }
     }
 
