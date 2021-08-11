@@ -38,13 +38,41 @@ namespace WPF_APNG
         Storyboard _checkStoryboard;
         async private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            
-            
             return;
+
             StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
             CPng_Reader pngr = new CPng_Reader();
-            //this.m_Apng = pngr.Open(sri.Stream).SpltAPng();
-            this.m_Apng = pngr.Open(File.OpenRead("D:\\sample.png")).SpltAPng();
+            this.m_Apng = pngr.Open(sri.Stream).SpltAPng();
+            
+
+            var drawingVisual = new DrawingVisual();
+            using (DrawingContext dc = drawingVisual.RenderOpen())
+            {
+                double x = 0;
+                for (int i = 0; i < this.m_Apng.Count; i++)
+                {
+                    BitmapImage img = new BitmapImage();
+                    img.BeginInit();
+                    img.StreamSource = this.m_Apng.ElementAt(i).Value;
+                    img.EndInit();
+                    img.Freeze();
+                    dc.DrawImage(img, new Rect(x, 0, img.Width, img.Height));
+                    x = x + img.Width;
+                }
+            }
+
+            RenderTargetBitmap rtb = new RenderTargetBitmap((int)drawingVisual.ContentBounds.Width, (int)drawingVisual.ContentBounds.Height, 96, 96, PixelFormats.Pbgra32);
+            rtb.Render(drawingVisual);
+
+            // Encoding the RenderBitmapTarget as a PNG file.
+            PngBitmapEncoder png = new PngBitmapEncoder();
+            png.Frames.Add(BitmapFrame.Create(rtb));
+            using (Stream stm = File.Create("new.png"))
+            {
+                png.Save(stm);
+            }
+
+
 #if TestD3DImage
                         IHDR ihdr = pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR;
                         this.m_D3DImage.Open(ihdr.Width, ihdr.Height);

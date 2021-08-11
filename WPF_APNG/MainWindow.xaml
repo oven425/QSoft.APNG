@@ -21,12 +21,13 @@
                         <Image.RenderTransform>
                             <TranslateTransform X="0"/>
                         </Image.RenderTransform>
-                        <!--<Image.Clip>
-                    <RectangleGeometry Rect="0 0 100 100"/>
-                </Image.Clip>-->
                     </Image>
                 </Grid>
             </ScrollViewer>
+            <Border Height="148" Width="148">
+                <Image Source="test.png" Width="3700" Height="148"/>
+            </Border>
+            
         </StackPanel>
         
        
