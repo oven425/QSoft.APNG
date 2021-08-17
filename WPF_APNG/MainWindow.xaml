@@ -24,8 +24,27 @@
                     </Image>
                 </Grid>
             </ScrollViewer>
-            <Border Height="148" Width="148">
-                <Image Source="test.png" Width="3700" Height="148"/>
+            <Border Height="148" Width="148" ClipToBounds="True"  >
+                <Image x:Name="image_png" Source="test.png" Width="3700" Height="148" Loaded="Image_Loaded_1">
+                    <!--<Image.Triggers>
+                        <EventTrigger RoutedEvent="Image.MouseLeftButtonDown">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimationUsingKeyFrames 
+                                        
+                Storyboard.TargetName="image_png"
+                Storyboard.TargetProperty="Margin"
+                Duration="0:0:10">
+                                        <DiscreteThicknessKeyFrame Value="0" KeyTime="0:0:0" />
+                                        <DiscreteThicknessKeyFrame Value="-148" KeyTime="0:0:1" />
+                                        <DiscreteThicknessKeyFrame Value="-296" KeyTime="0:0:2" />
+                                        <DiscreteThicknessKeyFrame Value="0" KeyTime="0:0:3" />
+                                    </ThicknessAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Image.Triggers>-->
+                </Image>
             </Border>
             
         </StackPanel>

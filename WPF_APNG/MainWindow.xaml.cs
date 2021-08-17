@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace WPF_APNG
 {
@@ -38,6 +39,7 @@ namespace WPF_APNG
         Storyboard _checkStoryboard;
         async private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+
             return;
 
             StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
@@ -166,21 +168,52 @@ namespace WPF_APNG
                 {
                     KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
                     //KeyTime = TimeSpan.FromSeconds(1),
-                    Value = -(i + 1) * 100
+                    Value = -(i + 1) * 148
                 };
+                keyFrame.Freeze();
                 keyFrames.KeyFrames.Add(keyFrame);
             }
-
+            keyFrames.Freeze();
             _checkStoryboard.Children.Add(keyFrames);
 
             _checkStoryboard.FillBehavior = FillBehavior.HoldEnd;
-
+            _checkStoryboard.Freeze();
             await Task.Delay(1000);
             //_checkStoryboard.Begin();
         }
 
         private void Button_test_Click(object sender, RoutedEventArgs e)
         {
+            _checkStoryboard.Begin();
+        }
+
+        async private void Image_Loaded_1(object sender, RoutedEventArgs e)
+        {
+            //TranslateTransform _heartTransform = (sender as Image).RenderTransform as TranslateTransform;
+            _checkStoryboard = new Storyboard();
+
+            var keyFrames = new ThicknessAnimationUsingKeyFrames();
+            //keyFrames.AutoReverse = true;
+            Storyboard.SetTarget(keyFrames, sender as Image);
+            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Margin"));
+            TimeSpan start = TimeSpan.Zero;
+            //keyFrames.Duration = TimeSpan.FromSeconds(25);
+            for (var i = 0; i < 24; i++)
+            {
+                var keyFrame = new DiscreteThicknessKeyFrame
+                {
+                    //KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
+                    KeyTime = TimeSpan.FromSeconds(i*0.03),
+                    Value = new Thickness(-(i + 1) * 148, 0, 0, 0)
+                };
+                keyFrames.KeyFrames.Add(keyFrame);
+            }
+            _checkStoryboard.RepeatBehavior = RepeatBehavior.Forever;
+            _checkStoryboard.Children.Add(keyFrames);
+
+            //_checkStoryboard.FillBehavior = FillBehavior.HoldEnd;
+
+            await Task.Delay(1000);
             _checkStoryboard.Begin();
         }
     }
