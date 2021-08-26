@@ -19,6 +19,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO.Compression;
 
 namespace WPF_APNG
 {
@@ -36,44 +37,150 @@ namespace WPF_APNG
 #if TestD3DImage
         CD3DImage m_D3DImage = new CD3DImage();
 #endif
-        Storyboard _checkStoryboard;
-        async private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
-            return;
+            //return;
 
             StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
+            StreamResourceInfo elephant = Application.GetResourceStream(new Uri("pack://application:,,,/elephant.png", UriKind.Absolute));
             CPng_Reader pngr = new CPng_Reader();
             this.m_Apng = pngr.Open(sri.Stream).SpltAPng();
-            
 
-            var drawingVisual = new DrawingVisual();
-            using (DrawingContext dc = drawingVisual.RenderOpen())
+            //IHDR ihdr = pngr.IHDR;
+            //var drawingVisual = new DrawingVisual();
+            //using (DrawingContext dc = drawingVisual.RenderOpen())
+            //{
+            //    double x = 0;
+            //    for (int i = 0; i < this.m_Apng.Count; i++)
+            //    {
+            //        fcTL fctl = this.m_Apng.ElementAt(i).Key;
+            //        BitmapImage img = new BitmapImage();
+            //        img.BeginInit();
+            //        img.StreamSource = this.m_Apng.ElementAt(i).Value;
+            //        img.EndInit();
+            //        img.Freeze();
+            //        //if(fctl.X_Offset > 0)
+            //        //{
+            //        //    dc.DrawRectangle(Brushes.Black, null, new Rect(x, 0, fctl.X_Offset, ihdr.Height));
+            //        //}
+            //        dc.DrawRectangle(Brushes.Transparent, null, new Rect(x, 0, ihdr.Width, ihdr.Height));
+            //        dc.DrawImage(img, new Rect(x+ fctl.X_Offset, fctl.Y_Offset, img.Width, img.Height));
+            //        x = x + ihdr.Width;
+            //    }
+            //}
+
+            //_checkStoryboard = new Storyboard();
+
+            //var keyFrames = new ThicknessAnimationUsingKeyFrames();
+            ////keyFrames.AutoReverse = true;
+            //Storyboard.SetTarget(keyFrames, sender as Image);
+            //Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Margin"));
+            //TimeSpan start = TimeSpan.Zero;
+            ////keyFrames.Duration = TimeSpan.FromSeconds(25);
+            //for (var i = 0; i < this.m_Apng.Count; i++)
+            //{
+            //    var keyFrame = new DiscreteThicknessKeyFrame
+            //    {
+            //        //KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
+            //        KeyTime = TimeSpan.FromSeconds(i*0.04),
+            //        Value = new Thickness(-(i + 1) * 480, 0, 0, 0)
+            //    };
+            //    keyFrames.KeyFrames.Add(keyFrame);
+            //}
+            //_checkStoryboard.RepeatBehavior = RepeatBehavior.Forever;
+            //_checkStoryboard.Children.Add(keyFrames);
+
+            var storyboard = new Storyboard();
+            var keyFrames = new ObjectAnimationUsingKeyFrames();
+            Storyboard.SetTarget(keyFrames, this.image_png);
+            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Source"));
+            TimeSpan start = TimeSpan.Zero;
+            IHDR ihdr = pngr.IHDR;
+            fcTL fctl_prev = null;
+            for (int i = 0; i < this.m_Apng.Count; i++)
             {
-                double x = 0;
-                for (int i = 0; i < this.m_Apng.Count; i++)
+                fcTL fctl = this.m_Apng.ElementAt(i).Key;
+                var drawingVisual = new DrawingVisual();
+                using (DrawingContext dc = drawingVisual.RenderOpen())
                 {
+                    
                     BitmapImage img = new BitmapImage();
                     img.BeginInit();
                     img.StreamSource = this.m_Apng.ElementAt(i).Value;
                     img.EndInit();
                     img.Freeze();
-                    dc.DrawImage(img, new Rect(x, 0, img.Width, img.Height));
-                    x = x + img.Width;
+                    dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ihdr.Width, ihdr.Height));
+                    dc.DrawImage(img, new Rect(fctl.X_Offset, fctl.Y_Offset, img.Width, img.Height));
                 }
+                RenderTargetBitmap rtb = new RenderTargetBitmap((int)drawingVisual.ContentBounds.Width, (int)drawingVisual.ContentBounds.Height, 96, 96, PixelFormats.Pbgra32);
+                rtb.Render(drawingVisual);
+                if (fctl_prev != null)
+                {
+                    var dddd = TimeSpan.FromMilliseconds((double)(fctl_prev.Delay_Num) / fctl_prev.Delay_Den);
+                    start = start + TimeSpan.FromSeconds((double)(fctl_prev.Delay_Num) / fctl_prev.Delay_Den);
+                }
+                else
+                {
+                    fctl_prev = fctl;
+                }
+                var keyFrame = new DiscreteObjectKeyFrame
+                {
+                    //KeyTime = TimeSpan.FromSeconds(i * 0.04),
+                    KeyTime = start,
+                    Value = rtb
+                };
+                
+                keyFrames.KeyFrames.Add(keyFrame);
+
+                //// Encoding the RenderBitmapTarget as a PNG file.
+                //PngBitmapEncoder png = new PngBitmapEncoder();
+                //png.Frames.Add(BitmapFrame.Create(rtb));
+                //using (Stream stm = File.Create($"{ this.m_Apng.ElementAt(i).Key.SequenceNumber}.png"))
+                //{
+                //    png.Save(stm);
+                //}
+                //File.WriteAllBytes($"{this.m_Apng.ElementAt(i).Key.SequenceNumber}.png", this.m_Apng.ElementAt(i).Value.ToArray());
             }
+            storyboard.RepeatBehavior = RepeatBehavior.Forever;
+            storyboard.Children.Add(keyFrames);
+            storyboard.Begin();
 
-            RenderTargetBitmap rtb = new RenderTargetBitmap((int)drawingVisual.ContentBounds.Width, (int)drawingVisual.ContentBounds.Height, 96, 96, PixelFormats.Pbgra32);
-            rtb.Render(drawingVisual);
+            //IHDR ihdr = pngr.IHDR;
+            //var drawingVisual = new DrawingVisual();
+            //using (DrawingContext dc = drawingVisual.RenderOpen())
+            //{
+            //    double x = 0;
+            //    for (int i = 0; i < this.m_Apng.Count; i++)
+            //    {
+            //        fcTL fctl = this.m_Apng.ElementAt(i).Key;
+            //        BitmapImage img = new BitmapImage();
+            //        img.BeginInit();
+            //        img.StreamSource = this.m_Apng.ElementAt(i).Value;
+            //        img.EndInit();
+            //        img.Freeze();
+            //        //if(fctl.X_Offset > 0)
+            //        //{
+            //        //    dc.DrawRectangle(Brushes.Black, null, new Rect(x, 0, fctl.X_Offset, ihdr.Height));
+            //        //}
+            //        dc.DrawRectangle(Brushes.Transparent, null, new Rect(x, 0, ihdr.Width, ihdr.Height));
+            //        dc.DrawImage(img, new Rect(x+ fctl.X_Offset, fctl.Y_Offset, img.Width, img.Height));
+            //        x = x + ihdr.Width;
+            //    }
+            //}
 
-            // Encoding the RenderBitmapTarget as a PNG file.
-            PngBitmapEncoder png = new PngBitmapEncoder();
-            png.Frames.Add(BitmapFrame.Create(rtb));
-            using (Stream stm = File.Create("new.png"))
-            {
-                png.Save(stm);
-            }
+            //RenderTargetBitmap rtb = new RenderTargetBitmap((int)drawingVisual.ContentBounds.Width, (int)drawingVisual.ContentBounds.Height, 96, 96, PixelFormats.Pbgra32);
+            //rtb.Render(drawingVisual);
 
+            //// Encoding the RenderBitmapTarget as a PNG file.
+            //PngBitmapEncoder png = new PngBitmapEncoder();
+            //png.Frames.Add(BitmapFrame.Create(rtb));
+            //using (Stream stm = File.Create("new.png"))
+            //{
+            //    png.Save(stm);
+            //}
+
+            //this.image_png.Source = rtb;
 
 #if TestD3DImage
                         IHDR ihdr = pngr.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR;
@@ -82,10 +189,10 @@ namespace WPF_APNG
 #endif
 
 
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(5);
-            timer.Tick += Timer_Tick;
-            timer.Start();
+            //DispatcherTimer timer = new DispatcherTimer();
+            //timer.Interval = TimeSpan.FromMilliseconds(5);
+            //timer.Tick += Timer_Tick;
+            //timer.Start();
 
 
 
@@ -93,9 +200,9 @@ namespace WPF_APNG
 
         }
 
-        
 
-        
+
+
 
         int index = 0;
 #if TestD3DImage
@@ -144,7 +251,6 @@ namespace WPF_APNG
                 this.m_Bmps.Add(index, bmp);
             }
             
-            this.img.Source = this.m_Bmps[index];
             index = index + 1;
             if (index >= this.m_Apng.Count)
             {
@@ -153,68 +259,34 @@ namespace WPF_APNG
 #endif
         }
 
-        async private void Image_Loaded(object sender, RoutedEventArgs e)
-        {
-            TranslateTransform _heartTransform = (sender as Image).RenderTransform as TranslateTransform;
-            _checkStoryboard = new Storyboard();
-
-            var keyFrames = new DoubleAnimationUsingKeyFrames();
-            Storyboard.SetTarget(keyFrames, sender as Image);
-            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("RenderTransform.(TranslateTransform.X)"));
-            TimeSpan start = TimeSpan.Zero;
-            for (var i = 0; i < 28; i++)
-            {
-                var keyFrame = new DiscreteDoubleKeyFrame
-                {
-                    KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
-                    //KeyTime = TimeSpan.FromSeconds(1),
-                    Value = -(i + 1) * 148
-                };
-                keyFrame.Freeze();
-                keyFrames.KeyFrames.Add(keyFrame);
-            }
-            keyFrames.Freeze();
-            _checkStoryboard.Children.Add(keyFrames);
-
-            _checkStoryboard.FillBehavior = FillBehavior.HoldEnd;
-            _checkStoryboard.Freeze();
-            await Task.Delay(1000);
-            //_checkStoryboard.Begin();
-        }
-
-        private void Button_test_Click(object sender, RoutedEventArgs e)
-        {
-            _checkStoryboard.Begin();
-        }
-
         async private void Image_Loaded_1(object sender, RoutedEventArgs e)
         {
             //TranslateTransform _heartTransform = (sender as Image).RenderTransform as TranslateTransform;
-            _checkStoryboard = new Storyboard();
+            //_checkStoryboard = new Storyboard();
 
-            var keyFrames = new ThicknessAnimationUsingKeyFrames();
-            //keyFrames.AutoReverse = true;
-            Storyboard.SetTarget(keyFrames, sender as Image);
-            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Margin"));
-            TimeSpan start = TimeSpan.Zero;
-            //keyFrames.Duration = TimeSpan.FromSeconds(25);
-            for (var i = 0; i < 24; i++)
-            {
-                var keyFrame = new DiscreteThicknessKeyFrame
-                {
-                    //KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
-                    KeyTime = TimeSpan.FromSeconds(i*0.03),
-                    Value = new Thickness(-(i + 1) * 148, 0, 0, 0)
-                };
-                keyFrames.KeyFrames.Add(keyFrame);
-            }
-            _checkStoryboard.RepeatBehavior = RepeatBehavior.Forever;
-            _checkStoryboard.Children.Add(keyFrames);
+            //var keyFrames = new ThicknessAnimationUsingKeyFrames();
+            ////keyFrames.AutoReverse = true;
+            //Storyboard.SetTarget(keyFrames, sender as Image);
+            //Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Margin"));
+            //TimeSpan start = TimeSpan.Zero;
+            ////keyFrames.Duration = TimeSpan.FromSeconds(25);
+            //for (var i = 0; i < this.m_Apng.Count; i++)
+            //{
+            //    var keyFrame = new DiscreteThicknessKeyFrame
+            //    {
+            //        //KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
+            //        KeyTime = TimeSpan.FromSeconds(i*0.04),
+            //        Value = new Thickness(-(i + 1) * 480, 0, 0, 0)
+            //    };
+            //    keyFrames.KeyFrames.Add(keyFrame);
+            //}
+            //_checkStoryboard.RepeatBehavior = RepeatBehavior.Forever;
+            //_checkStoryboard.Children.Add(keyFrames);
 
-            //_checkStoryboard.FillBehavior = FillBehavior.HoldEnd;
+            ////_checkStoryboard.FillBehavior = FillBehavior.HoldEnd;
 
-            await Task.Delay(1000);
-            _checkStoryboard.Begin();
+            ////await Task.Delay(1000);
+            //_checkStoryboard.Begin();
         }
     }
 

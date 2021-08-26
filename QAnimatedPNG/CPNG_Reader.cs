@@ -12,11 +12,12 @@ namespace APNG
     {
         public List<Chunk> Chunks { set; get; } = new List<Chunk>();
         byte[] m_PNGHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
-
+        public IHDR IHDR { get { return this.Chunks.FirstOrDefault(x => x is IHDR) as IHDR; } }
+            
         public Dictionary<fcTL, MemoryStream> SpltAPng()
         {
             Dictionary<fcTL, MemoryStream> pngs = new Dictionary<fcTL, MemoryStream>();
-            IHDR ihdr = this.Chunks.FirstOrDefault(x => x.ChunkType == ChunkTypes.IHDR) as IHDR;
+            IHDR ihdr = new IHDR(this.IHDR);
 
             MemoryStream mm = new MemoryStream();
             fcTL lastfctl = null;
@@ -38,6 +39,8 @@ namespace APNG
                                 MemoryStream ms = new MemoryStream();
                                 CPNG_Writer pngw_ = new CPNG_Writer();
                                 pngw_.Open(ms);
+                                ihdr.Width = lastfctl.Width;
+                                ihdr.Height = lastfctl.Height;
                                 pngw_.WriteIHDR(ihdr);
                                 pngw_.WriteIDAT(mm.ToArray());
                                 pngw_.WriteIEND();
@@ -59,6 +62,8 @@ namespace APNG
                             MemoryStream ms = new MemoryStream();
                             CPNG_Writer pngw_ = new CPNG_Writer();
                             pngw_.Open(ms);
+                            ihdr.Width = lastfctl.Width;
+                            ihdr.Height = lastfctl.Height;
                             pngw_.WriteIHDR(ihdr);
                             pngw_.WriteIDAT(mm.ToArray());
                             pngw_.WriteIEND();
@@ -130,11 +135,13 @@ namespace APNG
                             fcTL.Y_Offset = br.ReadInt32LN();
                             fcTL.Delay_Num = br.ReadInt16LN();
                             fcTL.Delay_Den = br.ReadInt16LN();
-                            fcTL.Dispose_op = br.ReadByte();
-                            fcTL.Blend_op = br.ReadByte();
+                            byte dispose = br.ReadByte();
+                            byte blend = br.ReadByte();
+                            fcTL.Dispose_op = (fcTL.Diposes)dispose;
+                            fcTL.Blend_op = (fcTL.Blends)blend;
                             fcTL.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fcTL);
-                            System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{fcTL.SequenceNumber} width:{fcTL.Width} height:{fcTL.Height} delay_num:{fcTL.Delay_Num} delay_den:{fcTL.Delay_Den}");
+                            System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{fcTL.SequenceNumber} x:{fcTL.X_Offset} y:{fcTL.Y_Offset} width:{fcTL.Width} height:{fcTL.Height} delay_num:{fcTL.Delay_Num} delay_den:{fcTL.Delay_Den}, Dispose:{fcTL.Dispose_op} Blend:{fcTL.Blend_op}");
                         }
                         break;
                     case "fdAT":
@@ -146,7 +153,7 @@ namespace APNG
                             fdat.Data = br.ReadBytes(len-4);
                             fdat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fdat);
-                            System.Diagnostics.Trace.WriteLine($"fdAT len:{fdat.Size} sequence_number:{fdat.SequenceNumber}");
+                            System.Diagnostics.Trace.WriteLine($"fdAT sequence_number:{fdat.SequenceNumber} len:{fdat.Size}");
                         }
                         break;
                     case "IDAT":
@@ -202,7 +209,7 @@ namespace APNG
             data.Filter = br.ReadByte();
             data.Iterlace = br.ReadByte();
             data.CRC = br.ReadBytes(4);
-            System.Diagnostics.Trace.WriteLine($"IHDR crc:{BitConverter.ToString(data.CRC)}");
+            //System.Diagnostics.Trace.WriteLine($"IHDR crc:{BitConverter.ToString(data.CRC)}");
         }
     }
 

@@ -40,6 +40,19 @@ namespace APNG
         {
             this.ChunkType = ChunkTypes.IHDR;
         }
+
+        public IHDR(IHDR data)
+            : base(data)
+        {
+            this.Width = data.Width;
+            this.Height = data.Height;
+            this.BitDepth = data.BitDepth;
+            this.ColorType = data.ColorType;
+            this.Compression = data.Compression;
+            this.Filter = data.Filter;
+            this.Iterlace = data.Iterlace;
+        }
+
         public int Width { set; get; }
         public int Height { set; get; }
         public byte BitDepth { set; get; }
@@ -62,9 +75,24 @@ namespace APNG
         public int Y_Offset { set; get; }
         public int Delay_Num { set; get; }
         public int Delay_Den { set; get; }
-        public byte Dispose_op { set; get; }
-        public byte Blend_op { set; get; }
+        public Diposes Dispose_op { set; get; }
+        public Blends Blend_op { set; get; }
+
+        public enum Diposes
+        {
+            None,
+            Background,
+            Previous
+        }
+
+        public enum Blends
+        {
+            Source,
+            Over
+        }
     }
+
+
 
     public class acTL:Chunk
     {
@@ -88,6 +116,19 @@ namespace APNG
     }
     public class Chunk
     {
+        public Chunk()
+        {
+
+        }
+
+        public Chunk(Chunk data)
+        {
+            this.ChunkType = data.ChunkType;
+            this.Pos = data.Pos;
+            this.Size = data.Size;
+            this.CRC = new byte[data.CRC.Length];
+            Array.Copy(data.CRC, this.CRC, data.CRC.Length);
+        }
         public ChunkTypes ChunkType { set; get; }
         public long Pos { set; get; }
         public int Size { set; get; }
