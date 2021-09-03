@@ -44,8 +44,9 @@ namespace WPF_APNG
 
             StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
             StreamResourceInfo elephant = Application.GetResourceStream(new Uri("pack://application:,,,/elephant.png", UriKind.Absolute));
+            StreamResourceInfo ball = Application.GetResourceStream(new Uri("pack://application:,,,/ball.png", UriKind.Absolute));
             CPng_Reader pngr = new CPng_Reader();
-            this.m_Apng = pngr.Open(sri.Stream).SpltAPng();
+            this.m_Apng = pngr.Open(ball.Stream).SpltAPng();
 
             //IHDR ihdr = pngr.IHDR;
             //var drawingVisual = new DrawingVisual();
@@ -124,13 +125,14 @@ namespace WPF_APNG
                 {
                     fctl_prev = fctl;
                 }
+                rtb.Freeze();
                 var keyFrame = new DiscreteObjectKeyFrame
                 {
                     //KeyTime = TimeSpan.FromSeconds(i * 0.04),
                     KeyTime = start,
                     Value = rtb
                 };
-                
+                keyFrame.Freeze();
                 keyFrames.KeyFrames.Add(keyFrame);
 
                 //// Encoding the RenderBitmapTarget as a PNG file.
@@ -143,7 +145,9 @@ namespace WPF_APNG
                 //File.WriteAllBytes($"{this.m_Apng.ElementAt(i).Key.SequenceNumber}.png", this.m_Apng.ElementAt(i).Value.ToArray());
             }
             storyboard.RepeatBehavior = RepeatBehavior.Forever;
+            keyFrames.Freeze();
             storyboard.Children.Add(keyFrames);
+            storyboard.Freeze();
             storyboard.Begin();
 
             //IHDR ihdr = pngr.IHDR;
