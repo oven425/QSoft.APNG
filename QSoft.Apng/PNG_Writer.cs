@@ -45,6 +45,49 @@ namespace QSoft.Apng
             return true;
         }
 
+        public void WritePLTE(PLTE data)
+        {
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
+            byte[] sss = Encoding.UTF8.GetBytes("PLTE");
+            w.Write(sss);
+            foreach(var rgb in data.RGBs)
+            {
+                w.Write(rgb.R);
+                w.Write(rgb.G);
+                w.Write(rgb.B);
+            }
+
+            byte[] bb = this.m_Temp.ToArray();
+
+            this.m_Bw.WriteLN(bb.Length - 4);
+            this.m_Bw.Write(bb);
+            CRC32Cls crc32 = new CRC32Cls();
+            ulong crc_ulong = crc32.GetCRC32Str(bb);
+            sss = BitConverter.GetBytes(crc_ulong);
+            Array.Reverse(sss);
+            this.m_Bw.Write(sss, 4, 4);
+        }
+
+        public void WritetRNS(tRNS data)
+        {
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
+            byte[] sss = Encoding.UTF8.GetBytes("tRNS");
+            w.Write(sss);
+            w.Write(data.Data);
+
+            byte[] bb = this.m_Temp.ToArray();
+
+            this.m_Bw.WriteLN(bb.Length - 4);
+            this.m_Bw.Write(bb);
+            CRC32Cls crc32 = new CRC32Cls();
+            ulong crc_ulong = crc32.GetCRC32Str(bb);
+            sss = BitConverter.GetBytes(crc_ulong);
+            Array.Reverse(sss);
+            this.m_Bw.Write(sss, 4, 4);
+        }
+
         public void WriteIDAT(byte[] data)
         {
             this.m_Temp.SetLength(0);
@@ -79,6 +122,8 @@ namespace QSoft.Apng
             Array.Reverse(sss);
             this.m_Bw.Write(sss, 4, 4);
         }
+
+        
     }
 
     class CRC32Cls

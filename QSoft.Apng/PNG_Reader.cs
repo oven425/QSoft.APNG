@@ -17,6 +17,8 @@ namespace QSoft.Apng
         {
             Dictionary<fcTL, MemoryStream> pngs = new Dictionary<fcTL, MemoryStream>();
             IHDR ihdr = new IHDR(this.IHDR);
+            PLTE plte = this.Chunks.FirstOrDefault(x => x is PLTE) as PLTE;
+            tRNS trns = this.Chunks.FirstOrDefault(x => x is tRNS) as tRNS;
 
             MemoryStream mm = new MemoryStream();
             fcTL lastfctl = null;
@@ -33,7 +35,7 @@ namespace QSoft.Apng
                     case ChunkTypes.fcTL:
                         {
                             fcTL fctl = this.Chunks[i] as fcTL;
-                            if (mm.Length > 0)
+                            if (mm.Length > 0&& lastfctl != null)
                             {
                                 MemoryStream ms = new MemoryStream();
                                 PNG_Writer pngw_ = new PNG_Writer();
@@ -41,6 +43,14 @@ namespace QSoft.Apng
                                 ihdr.Width = lastfctl.Width;
                                 ihdr.Height = lastfctl.Height;
                                 pngw_.WriteIHDR(ihdr);
+                                if(plte != null)
+                                {
+                                    pngw_.WritePLTE(plte);
+                                }
+                                if(trns != null)
+                                {
+                                    pngw_.WritetRNS(trns);
+                                }
                                 pngw_.WriteIDAT(mm.ToArray());
                                 pngw_.WriteIEND();
                                 ms.Position = 0;
@@ -64,6 +74,14 @@ namespace QSoft.Apng
                             ihdr.Width = lastfctl.Width;
                             ihdr.Height = lastfctl.Height;
                             pngw_.WriteIHDR(ihdr);
+                            if (plte != null)
+                            {
+                                pngw_.WritePLTE(plte);
+                            }
+                            if (trns != null)
+                            {
+                                pngw_.WritetRNS(trns);
+                            }
                             pngw_.WriteIDAT(mm.ToArray());
                             pngw_.WriteIEND();
                             ms.Position = 0;
@@ -82,10 +100,14 @@ namespace QSoft.Apng
             return pngs;
         }
 
+        public Png_Reader Open(string file)
+        {
+            return Open(File.OpenRead(file));
+        }
+
         public Png_Reader Open(Stream stream)
         {
             BinaryReader br = new BinaryReader(stream);
-            bool result = true;
             byte[] sss = br.ReadBytes(8);
             System.Diagnostics.Trace.WriteLine(BitConverter.ToString(sss));
             while (true)
@@ -187,9 +209,38 @@ namespace QSoft.Apng
                             phys.CRC = br.ReadBytes(4);
                         }
                         break;
+                    case "PLTE":
+                        {
+                            PLTE plte = new PLTE();
+                            plte.Pos = stream.Position;
+                            plte.Size = len;
+
+                            for (int i = 0; i < len; i = i + 3)
+                            {
+                                byte[] rgb_buf = br.ReadBytes(3);
+
+                                plte.RGBs.Add((rgb_buf[0], rgb_buf[1], rgb_buf[2]));
+                            }
+
+                            plte.CRC = br.ReadBytes(4);
+                            this.Chunks.Add(plte);
+                            System.Diagnostics.Trace.WriteLine($"PLTE len:{len} crc:{BitConverter.ToString(plte.CRC)}");
+                        }
+                        break;
+                    case "tRNS":
+                        {
+                            tRNS trns = new tRNS();
+                            trns.Pos = stream.Position;
+                            trns.Size = len;
+                            trns.Data = br.ReadBytes(len);
+                            trns.CRC = br.ReadBytes(4);
+                            this.Chunks.Add(trns);
+                            System.Diagnostics.Trace.WriteLine($"tRNS len:{len} crc:{BitConverter.ToString(trns.CRC)}");
+                        }
+                        break;
                     default:
                         {
-                            System.Diagnostics.Trace.WriteLine(id);
+                            System.Diagnostics.Trace.WriteLine($"unknown {id}");
                             br.ReadBytes(len + 4);
                         }
                         break;

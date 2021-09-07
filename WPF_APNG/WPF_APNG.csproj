@@ -105,19 +105,13 @@
     <Resource Include="apng_spinfox.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QAnimatedPNG\QAnimatedPNG.csproj">
-      <Project>{e45ead4e-aeaa-47a6-95be-544b59ba0bd1}</Project>
-      <Name>QAnimatedPNG</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="heart.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="elephant.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="ball.png" />
+    <ProjectReference Include="..\QSoft.Apng\QSoft.Apng.csproj">
+      <Project>{9b5c14b0-aad8-47bb-9c8d-9f6c8d975897}</Project>
+      <Name>QSoft.Apng</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

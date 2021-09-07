@@ -92,8 +92,6 @@ namespace QSoft.Apng
         }
     }
 
-
-
     public class acTL:Chunk
     {
         public acTL()
@@ -104,6 +102,26 @@ namespace QSoft.Apng
         public int Num_Plays { set; get; }
     }
 
+    public class PLTE : Chunk
+    {
+        public PLTE()
+        {
+            this.ChunkType = ChunkTypes.pLTE;
+            
+        }
+        public List<(byte R, byte G, byte B)> RGBs { set; get; } = new List<(byte R, byte G, byte B)>();
+    }
+
+    public class tRNS:Chunk
+    {
+        public tRNS()
+        {
+            this.ChunkType = ChunkTypes.tRNS;
+        }
+
+        public byte[] Data { set; get; }
+    }
+
     public enum ChunkTypes
     {
         IDAT,
@@ -112,6 +130,8 @@ namespace QSoft.Apng
         acTL,
         fcTL,
         fdAT,
+        pLTE,
+        tRNS,
         IEND,
     }
     public class Chunk

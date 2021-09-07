@@ -5,14 +5,12 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.IO;
 using System.Windows.Resources;
-using APNG;
 using System.Windows.Threading;
 using System.Windows.Interop;
 using SharpDX.Direct3D9;
 using System.Runtime.InteropServices;
 using SharpDX;
 using System.Linq;
-using APNG.Tool;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -20,6 +18,7 @@ using System.Windows.Media;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO.Compression;
+using QSoft.Apng;
 
 namespace WPF_APNG
 {
@@ -42,56 +41,21 @@ namespace WPF_APNG
 
             //return;
 
-            StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
-            StreamResourceInfo elephant = Application.GetResourceStream(new Uri("pack://application:,,,/elephant.png", UriKind.Absolute));
-            StreamResourceInfo ball = Application.GetResourceStream(new Uri("pack://application:,,,/ball.png", UriKind.Absolute));
-            CPng_Reader pngr = new CPng_Reader();
-            this.m_Apng = pngr.Open(ball.Stream).SpltAPng();
+            //StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
+            //StreamResourceInfo elephant = Application.GetResourceStream(new Uri("pack://application:,,,/elephant.png", UriKind.Absolute));
+            //StreamResourceInfo ball = Application.GetResourceStream(new Uri("pack://application:,,,/ball.png", UriKind.Absolute));
 
-            //IHDR ihdr = pngr.IHDR;
-            //var drawingVisual = new DrawingVisual();
-            //using (DrawingContext dc = drawingVisual.RenderOpen())
-            //{
-            //    double x = 0;
-            //    for (int i = 0; i < this.m_Apng.Count; i++)
-            //    {
-            //        fcTL fctl = this.m_Apng.ElementAt(i).Key;
-            //        BitmapImage img = new BitmapImage();
-            //        img.BeginInit();
-            //        img.StreamSource = this.m_Apng.ElementAt(i).Value;
-            //        img.EndInit();
-            //        img.Freeze();
-            //        //if(fctl.X_Offset > 0)
-            //        //{
-            //        //    dc.DrawRectangle(Brushes.Black, null, new Rect(x, 0, fctl.X_Offset, ihdr.Height));
-            //        //}
-            //        dc.DrawRectangle(Brushes.Transparent, null, new Rect(x, 0, ihdr.Width, ihdr.Height));
-            //        dc.DrawImage(img, new Rect(x+ fctl.X_Offset, fctl.Y_Offset, img.Width, img.Height));
-            //        x = x + ihdr.Width;
-            //    }
-            //}
-
-            //_checkStoryboard = new Storyboard();
-
-            //var keyFrames = new ThicknessAnimationUsingKeyFrames();
-            ////keyFrames.AutoReverse = true;
-            //Storyboard.SetTarget(keyFrames, sender as Image);
-            //Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Margin"));
-            //TimeSpan start = TimeSpan.Zero;
-            ////keyFrames.Duration = TimeSpan.FromSeconds(25);
-            //for (var i = 0; i < this.m_Apng.Count; i++)
-            //{
-            //    var keyFrame = new DiscreteThicknessKeyFrame
-            //    {
-            //        //KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
-            //        KeyTime = TimeSpan.FromSeconds(i*0.04),
-            //        Value = new Thickness(-(i + 1) * 480, 0, 0, 0)
-            //    };
-            //    keyFrames.KeyFrames.Add(keyFrame);
-            //}
-            //_checkStoryboard.RepeatBehavior = RepeatBehavior.Forever;
-            //_checkStoryboard.Children.Add(keyFrames);
-
+            //var apngs = Directory.GetFiles("../../testapng");
+            //var file = File.OpenRead("../../testapng/elephant.png");
+            var file = File.OpenRead("../../testapng/clock.png");
+            //var file = File.OpenRead("../../testapng/pyani.png");
+            Png_Reader pngr = new Png_Reader();
+            this.m_Apng = pngr.Open(file).SpltAPng();
+            for(int i=0; i<this.m_Apng.Count; i++)
+            {
+                File.WriteAllBytes($"{i}.png", this.m_Apng.ElementAt(i).Value.ToArray());
+            }
+            
             var storyboard = new Storyboard();
             var keyFrames = new ObjectAnimationUsingKeyFrames();
             Storyboard.SetTarget(keyFrames, this.image_png);
