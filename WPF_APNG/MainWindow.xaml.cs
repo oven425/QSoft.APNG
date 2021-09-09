@@ -38,13 +38,6 @@ namespace WPF_APNG
 #endif
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-
-            //return;
-
-            //StreamResourceInfo sri = Application.GetResourceStream(new Uri("pack://application:,,,/apng_spinfox.png", UriKind.Absolute));
-            //StreamResourceInfo elephant = Application.GetResourceStream(new Uri("pack://application:,,,/elephant.png", UriKind.Absolute));
-            //StreamResourceInfo ball = Application.GetResourceStream(new Uri("pack://application:,,,/ball.png", UriKind.Absolute));
-
             //var apngs = Directory.GetFiles("../../testapng");
             //var file = File.OpenRead("../../testapng/elephant.png");
             var file = File.OpenRead("../../testapng/clock.png");
@@ -53,7 +46,7 @@ namespace WPF_APNG
             this.m_Apng = pngr.Open(file).SpltAPng();
             for(int i=0; i<this.m_Apng.Count; i++)
             {
-                File.WriteAllBytes($"{i}.png", this.m_Apng.ElementAt(i).Value.ToArray());
+                File.WriteAllBytes($"{this.m_Apng.ElementAt(i).Key.SequenceNumber}.png", this.m_Apng.ElementAt(i).Value.ToArray());
             }
             
             var storyboard = new Storyboard();
@@ -63,6 +56,7 @@ namespace WPF_APNG
             TimeSpan start = TimeSpan.Zero;
             IHDR ihdr = pngr.IHDR;
             fcTL fctl_prev = null;
+            BitmapSource lastblendsource = null;
             for (int i = 0; i < this.m_Apng.Count; i++)
             {
                 fcTL fctl = this.m_Apng.ElementAt(i).Key;
@@ -75,6 +69,10 @@ namespace WPF_APNG
                     img.StreamSource = this.m_Apng.ElementAt(i).Value;
                     img.EndInit();
                     img.Freeze();
+                    if(fctl.Blend_op == fcTL.Blends.Over && lastblendsource != null)
+                    {
+                        dc.DrawImage(lastblendsource, new Rect(0, 0, ihdr.Width, ihdr.Height));
+                    }
                     dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ihdr.Width, ihdr.Height));
                     dc.DrawImage(img, new Rect(fctl.X_Offset, fctl.Y_Offset, img.Width, img.Height));
                 }
@@ -90,6 +88,10 @@ namespace WPF_APNG
                     fctl_prev = fctl;
                 }
                 rtb.Freeze();
+                //if(fctl.Blend_op == fcTL.Blends.Source)
+                {
+                    lastblendsource = rtb;
+                }
                 var keyFrame = new DiscreteObjectKeyFrame
                 {
                     //KeyTime = TimeSpan.FromSeconds(i * 0.04),
@@ -99,13 +101,13 @@ namespace WPF_APNG
                 keyFrame.Freeze();
                 keyFrames.KeyFrames.Add(keyFrame);
 
-                //// Encoding the RenderBitmapTarget as a PNG file.
-                //PngBitmapEncoder png = new PngBitmapEncoder();
-                //png.Frames.Add(BitmapFrame.Create(rtb));
-                //using (Stream stm = File.Create($"{ this.m_Apng.ElementAt(i).Key.SequenceNumber}.png"))
-                //{
-                //    png.Save(stm);
-                //}
+                // Encoding the RenderBitmapTarget as a PNG file.
+                PngBitmapEncoder png = new PngBitmapEncoder();
+                png.Frames.Add(BitmapFrame.Create(rtb));
+                using (Stream stm = File.Create($"{ this.m_Apng.ElementAt(i).Key.SequenceNumber}.png"))
+                {
+                    png.Save(stm);
+                }
                 //File.WriteAllBytes($"{this.m_Apng.ElementAt(i).Key.SequenceNumber}.png", this.m_Apng.ElementAt(i).Value.ToArray());
             }
             storyboard.RepeatBehavior = RepeatBehavior.Forever;
@@ -225,36 +227,6 @@ namespace WPF_APNG
                 index = 0;
             }
 #endif
-        }
-
-        async private void Image_Loaded_1(object sender, RoutedEventArgs e)
-        {
-            //TranslateTransform _heartTransform = (sender as Image).RenderTransform as TranslateTransform;
-            //_checkStoryboard = new Storyboard();
-
-            //var keyFrames = new ThicknessAnimationUsingKeyFrames();
-            ////keyFrames.AutoReverse = true;
-            //Storyboard.SetTarget(keyFrames, sender as Image);
-            //Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Margin"));
-            //TimeSpan start = TimeSpan.Zero;
-            ////keyFrames.Duration = TimeSpan.FromSeconds(25);
-            //for (var i = 0; i < this.m_Apng.Count; i++)
-            //{
-            //    var keyFrame = new DiscreteThicknessKeyFrame
-            //    {
-            //        //KeyTime = TimeSpan.FromSeconds((i + 1d) / 28d),
-            //        KeyTime = TimeSpan.FromSeconds(i*0.04),
-            //        Value = new Thickness(-(i + 1) * 480, 0, 0, 0)
-            //    };
-            //    keyFrames.KeyFrames.Add(keyFrame);
-            //}
-            //_checkStoryboard.RepeatBehavior = RepeatBehavior.Forever;
-            //_checkStoryboard.Children.Add(keyFrames);
-
-            ////_checkStoryboard.FillBehavior = FillBehavior.HoldEnd;
-
-            ////await Task.Delay(1000);
-            //_checkStoryboard.Begin();
         }
     }
 
