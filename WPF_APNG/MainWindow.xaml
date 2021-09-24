@@ -4,23 +4,26 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF_APNG"
+        xmlns:apngex="clr-namespace:QSoft.Apng.WPF;assembly=QSoft.Apng"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
         Title="MainWindow" Height="450" Width="800">
+    
     <Grid>
-        <StackPanel >
-
-
-            <!--<Border Height="400" Width="480" ClipToBounds="True"  >
-                <Image ClipToBounds="True" x:Name="image_png" Source="test.png" Width="16320" Height="400" Loaded="Image_Loaded_1">
-                  
-                </Image>
-            </Border>-->
-            
-        </StackPanel>
-        <Image x:Name="image_png">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Image x:Name="image_png" Stretch="None">
         </Image>
-
+        <ComboBox Grid.Row="1" ItemsSource="{Binding Files}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <local:ApngImage Source="elephant.png"/>
     </Grid>
     
 </Window>

@@ -1,12 +1,114 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 
 namespace QSoft.Apng.WPF
 {
-    public class Apng
+    public static class Apng
     {
+        public static Storyboard ToWPF(this Png_Reader src, Image image_png)
+        {
+            var m_Apng = src.SpltAPng();
+            var storyboard = new Storyboard();
+            var keyFrames = new ObjectAnimationUsingKeyFrames();
+            Storyboard.SetTarget(keyFrames, image_png);
+            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Source"));
+            TimeSpan start = TimeSpan.Zero;
+            IHDR ihdr = src.IHDR;
+            fcTL fctl_prev = null;
+            BitmapSource lastblendsource = null;
+            for (int i = 0; i < m_Apng.Count; i++)
+            {
+                fcTL fctl = m_Apng.ElementAt(i).Key;
+                var drawingVisual = new DrawingVisual();
+                using (DrawingContext dc = drawingVisual.RenderOpen())
+                {
+
+                    BitmapImage img = new BitmapImage();
+                    img.BeginInit();
+                    img.StreamSource = m_Apng.ElementAt(i).Value;
+                    img.EndInit();
+                    img.Freeze();
+                    if (fctl.Blend_op == fcTL.Blends.Over && lastblendsource != null)
+                    {
+                        dc.DrawImage(lastblendsource, new Rect(0, 0, ihdr.Width, ihdr.Height));
+                    }
+                    dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ihdr.Width, ihdr.Height));
+                    dc.DrawImage(img, new Rect(fctl.X_Offset, fctl.Y_Offset, img.Width, img.Height));
+                }
+                RenderTargetBitmap rtb = new RenderTargetBitmap((int)drawingVisual.ContentBounds.Width, (int)drawingVisual.ContentBounds.Height, 96, 96, PixelFormats.Pbgra32);
+                rtb.Render(drawingVisual);
+                if (fctl_prev != null)
+                {
+                    var dddd = TimeSpan.FromMilliseconds((double)(fctl_prev.Delay_Num) / fctl_prev.Delay_Den);
+                    start = start + TimeSpan.FromSeconds((double)(fctl_prev.Delay_Num) / fctl_prev.Delay_Den);
+                }
+                else
+                {
+                    fctl_prev = fctl;
+                }
+                rtb.Freeze();
+                //if(fctl.Blend_op == fcTL.Blends.Source)
+                {
+                    lastblendsource = rtb;
+                }
+                var keyFrame = new DiscreteObjectKeyFrame
+                {
+                    //KeyTime = TimeSpan.FromSeconds(i * 0.04),
+                    KeyTime = start,
+                    Value = rtb
+                };
+                keyFrame.Freeze();
+                keyFrames.KeyFrames.Add(keyFrame);
+
+                //// Encoding the RenderBitmapTarget as a PNG file.
+                //PngBitmapEncoder png = new PngBitmapEncoder();
+                //png.Frames.Add(BitmapFrame.Create(rtb));
+                //using (Stream stm = File.Create($"{ this.m_Apng.ElementAt(i).Key.SequenceNumber}.png"))
+                //{
+                //    png.Save(stm);
+                //}
+                //File.WriteAllBytes($"{this.m_Apng.ElementAt(i).Key.SequenceNumber}.png", this.m_Apng.ElementAt(i).Value.ToArray());
+            }
+            storyboard.RepeatBehavior = RepeatBehavior.Forever;
+            keyFrames.Freeze();
+            storyboard.Children.Add(keyFrames);
+            storyboard.Freeze();
+
+            return storyboard;
+        }
+
+
+        //public static bool GetIsEnabled(DependencyObject obj) => (bool)obj.GetValue(IsEnabledPorperty);
+        //public static void SetIsEnabled(DependencyObject obj, bool value) => obj.SetValue(IsEnabledPorperty, value);
+        //public static readonly DependencyProperty IsEnabledPorperty =
+        //DependencyProperty.RegisterAttached("IsEnabled", typeof(bool), typeof(Apng), new PropertyMetadata(IsEnabledPropertyChanged));
+
+        //private static void IsEnabledPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+        //{
+        //    bool enabled = GetIsEnabled(obj);
+        //    Image image = obj as Image;
+        //    ImageSource imagesource = image.Source;
+        //    if (enabled == true)
+        //    {
+
+        //    }
+        //    //    //var file = File.OpenRead("../../testapng/EL6J88-U0AIMTJb.png");
+
+        //    //    var image = obj as Image;
+        //    //    Type type = args.NewValue.GetType();
+        //    //    //var file = File.OpenRead();
+        //    //}
+        //}
     }
+
+
 }

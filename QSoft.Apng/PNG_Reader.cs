@@ -129,7 +129,7 @@ namespace QSoft.Apng
                             ihdr.Size = len;
                             ParseIHDR(br, ihdr);
                             this.Chunks.Add(ihdr);
-                            System.Diagnostics.Trace.WriteLine($"IHDR width:{ihdr.Width} height:{ihdr.Height}");
+                            //System.Diagnostics.Trace.WriteLine($"IHDR width:{ihdr.Width} height:{ihdr.Height}");
                         }
                         break;
                     case "acTL":
@@ -141,7 +141,7 @@ namespace QSoft.Apng
                             actl.Num_Plays = br.ReadInt32LN();
                             actl.CRC = br.ReadBytes(4);
                             this.Chunks.Add(actl);
-                            System.Diagnostics.Trace.WriteLine($"acTL num_frames:{actl.Num_Frames} num_plays:{actl.Num_Plays}");
+                            //System.Diagnostics.Trace.WriteLine($"acTL num_frames:{actl.Num_Frames} num_plays:{actl.Num_Plays}");
                         }
                         break;
                     case "fcTL":
@@ -162,7 +162,7 @@ namespace QSoft.Apng
                             fcTL.Blend_op = (fcTL.Blends)blend;
                             fcTL.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fcTL);
-                            System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{fcTL.SequenceNumber} x:{fcTL.X_Offset} y:{fcTL.Y_Offset} width:{fcTL.Width} height:{fcTL.Height} delay_num:{fcTL.Delay_Num} delay_den:{fcTL.Delay_Den}, Dispose:{fcTL.Dispose_op} Blend:{fcTL.Blend_op}");
+                            //System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{fcTL.SequenceNumber} x:{fcTL.X_Offset} y:{fcTL.Y_Offset} width:{fcTL.Width} height:{fcTL.Height} delay_num:{fcTL.Delay_Num} delay_den:{fcTL.Delay_Den}, Dispose:{fcTL.Dispose_op} Blend:{fcTL.Blend_op}");
                         }
                         break;
                     case "fdAT":
@@ -174,7 +174,7 @@ namespace QSoft.Apng
                             fdat.Data = br.ReadBytes(len-4);
                             fdat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fdat);
-                            System.Diagnostics.Trace.WriteLine($"fdAT sequence_number:{fdat.SequenceNumber} len:{fdat.Size}");
+                            //System.Diagnostics.Trace.WriteLine($"fdAT sequence_number:{fdat.SequenceNumber} len:{fdat.Size}");
                         }
                         break;
                     case "IDAT":
@@ -186,7 +186,7 @@ namespace QSoft.Apng
                             idat.Data = br.ReadBytes(len);
                             idat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(idat);
-                            System.Diagnostics.Trace.WriteLine($"IDAT len:{len}");
+                            //System.Diagnostics.Trace.WriteLine($"IDAT len:{len}");
                         }
                         break;
                     case "IEND":
@@ -194,7 +194,7 @@ namespace QSoft.Apng
                             Chunk iend = new Chunk() { ChunkType = ChunkTypes.IEND };
                             iend.CRC = br.ReadBytes(4);
                             this.Chunks.Add(iend);
-                            System.Diagnostics.Trace.WriteLine($"IEND len:{len} crc:{BitConverter.ToString(iend.CRC)}");
+                            //System.Diagnostics.Trace.WriteLine($"IEND len:{len} crc:{BitConverter.ToString(iend.CRC)}");
                         }
                         break;
                     case "pHYs":
@@ -224,7 +224,7 @@ namespace QSoft.Apng
 
                             plte.CRC = br.ReadBytes(4);
                             this.Chunks.Add(plte);
-                            System.Diagnostics.Trace.WriteLine($"PLTE len:{len} crc:{BitConverter.ToString(plte.CRC)}");
+                            //System.Diagnostics.Trace.WriteLine($"PLTE len:{len} crc:{BitConverter.ToString(plte.CRC)}");
                         }
                         break;
                     case "tRNS":
@@ -235,12 +235,12 @@ namespace QSoft.Apng
                             trns.Data = br.ReadBytes(len);
                             trns.CRC = br.ReadBytes(4);
                             this.Chunks.Add(trns);
-                            System.Diagnostics.Trace.WriteLine($"tRNS len:{len} crc:{BitConverter.ToString(trns.CRC)}");
+                            //System.Diagnostics.Trace.WriteLine($"tRNS len:{len} crc:{BitConverter.ToString(trns.CRC)}");
                         }
                         break;
                     default:
                         {
-                            System.Diagnostics.Trace.WriteLine($"unknown {id}");
+                            //System.Diagnostics.Trace.WriteLine($"unknown {id}");
                             br.ReadBytes(len + 4);
                         }
                         break;
