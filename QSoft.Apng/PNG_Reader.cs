@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace QSoft.Apng
 {
@@ -219,7 +218,7 @@ namespace QSoft.Apng
                             {
                                 byte[] rgb_buf = br.ReadBytes(3);
 
-                                plte.RGBs.Add((rgb_buf[0], rgb_buf[1], rgb_buf[2]));
+                                plte.RGBs.Add(new PLTE.RGB() { R = rgb_buf[0], G = rgb_buf[1], B = rgb_buf[2] });
                             }
 
                             plte.CRC = br.ReadBytes(4);

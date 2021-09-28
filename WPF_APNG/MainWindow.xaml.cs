@@ -58,10 +58,15 @@ namespace WPF_APNG
             var file = File.OpenRead("../../testapng/SDve91m.png");
             //var file = File.OpenRead("../../testapng/pyani.png");
             Png_Reader pngr = new Png_Reader();
-            pngr.Open(file).ToWPF(this.image_png).Begin();
-            //this.m_Apng = pngr.Open(file).SpltAPng();
+            //pngr.Open(file).ToWPF(this.image_png).Begin();
+            var pngs = pngr.Open(file).SpltAPng();
+            for(int i=0; i< pngs.Count; i++)
+            {
+                File.WriteAllBytes($"{i}.png", pngs.ElementAt(i).Value.ToArray());
+            }
+            file.Close();
+            file.Dispose();
 
-            
             //var storyboard = new Storyboard();
             //var keyFrames = new ObjectAnimationUsingKeyFrames();
             //Storyboard.SetTarget(keyFrames, this.image_png);
@@ -76,7 +81,7 @@ namespace WPF_APNG
             //    var drawingVisual = new DrawingVisual();
             //    using (DrawingContext dc = drawingVisual.RenderOpen())
             //    {
-                    
+
             //        BitmapImage img = new BitmapImage();
             //        img.BeginInit();
             //        img.StreamSource = this.m_Apng.ElementAt(i).Value;
@@ -129,7 +134,7 @@ namespace WPF_APNG
             //storyboard.Freeze();
             //storyboard.Begin();
 
-            
+
 
 
 

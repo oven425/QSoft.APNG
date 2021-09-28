@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QSoft.Apng
 {
@@ -107,9 +104,24 @@ namespace QSoft.Apng
         public PLTE()
         {
             this.ChunkType = ChunkTypes.pLTE;
-            
+
         }
-        public List<(byte R, byte G, byte B)> RGBs { set; get; } = new List<(byte R, byte G, byte B)>();
+
+
+//#if NET472 || NET461
+
+//        //public List<(byte R, byte G, byte B)> RGBs { set; get; } = new List<(byte R, byte G, byte B)>();
+//#else
+//        string ss = Environment.GetEnvironmentVariable("TEMP");
+//#endif
+
+        public class RGB
+        {
+            public byte R { set; get; }
+            public byte G { set; get; }
+            public byte B { set; get; }
+        }
+        public List<RGB> RGBs { set; get; } = new List<RGB>();
     }
 
     public class tRNS:Chunk

@@ -1,0 +1,16 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.8' ">NET48</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.7.2' ">NET472</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.6.2' ">NET462</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.6.1' ">NET461</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.6' ">NET46</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.5.2' ">NET452</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.5.1' ">NET451</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.5' ">NET45</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">NET4</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v3.5' ">NET35</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v3.0' ">NET30</DefineConstants>
+	<DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v2.0' ">NET20</DefineConstants>
+  </PropertyGroup>
+</Project>

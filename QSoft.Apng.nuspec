@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>QSoft.Apng</id>
+    <version>1.0.0.0</version>
+    <title>Apng.NET</title>
+    <authors>BEN_HSU</authors>
+    <owners>BEN_HSU</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>40429294503_2b2a198be1_o.jpg</icon>
+    <projectUrl>https://github.com/oven425/QSoft.APNG</projectUrl>
+    <description>Parse apng and build animation for WPF</description>
+    <copyright>Copyright © Ben Hsu 2021</copyright>
+    <repository type="git" url="https://github.com/oven425/QSoft.APNG" />
+  </metadata>
+  <files>
+    <file src="QSoft.Apng\bin\Release\lib\" target="lib" />
+	<file src="40429294503_2b2a198be1_o.jpg" target="40429294503_2b2a198be1_o.jpg"/>
+   </files>
+</package>
