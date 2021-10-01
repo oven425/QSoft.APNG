@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,13 +12,19 @@ namespace QSoft.Apng.WPF
 {
     public static class Apng
     {
+        public static Dictionary<fcTL, MemoryStream> SplitApng(this Stream src)
+        {
+            Png_Reader pngr = new Png_Reader();
+            var pngs = pngr.Open(src).SpltAPng();
+            return pngs;
+        }
+
         public static Storyboard ToWPF(this Png_Reader src, Image image_png)
         {
             var m_Apng = src.SpltAPng();
             var storyboard = new Storyboard();
             var keyFrames = new ObjectAnimationUsingKeyFrames();
-            Storyboard.SetTarget(keyFrames, image_png);
-            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Source"));
+            
             TimeSpan start = TimeSpan.Zero;
             IHDR ihdr = src.IHDR;
             fcTL fctl_prev = null;
@@ -58,22 +66,17 @@ namespace QSoft.Apng.WPF
                 }
                 var keyFrame = new DiscreteObjectKeyFrame
                 {
-                    //KeyTime = TimeSpan.FromSeconds(i * 0.04),
                     KeyTime = start,
                     Value = rtb
                 };
                 keyFrame.Freeze();
                 keyFrames.KeyFrames.Add(keyFrame);
 
-                //// Encoding the RenderBitmapTarget as a PNG file.
-                //PngBitmapEncoder png = new PngBitmapEncoder();
-                //png.Frames.Add(BitmapFrame.Create(rtb));
-                //using (Stream stm = File.Create($"{ this.m_Apng.ElementAt(i).Key.SequenceNumber}.png"))
-                //{
-                //    png.Save(stm);
-                //}
-                //File.WriteAllBytes($"{this.m_Apng.ElementAt(i).Key.SequenceNumber}.png", this.m_Apng.ElementAt(i).Value.ToArray());
             }
+
+            Storyboard.SetTarget(keyFrames, image_png);
+            Storyboard.SetTargetProperty(keyFrames, new PropertyPath("Source"));
+
             storyboard.RepeatBehavior = RepeatBehavior.Forever;
             keyFrames.Freeze();
             storyboard.Children.Add(keyFrames);
@@ -82,29 +85,14 @@ namespace QSoft.Apng.WPF
             return storyboard;
         }
 
-
-        //public static bool GetIsEnabled(DependencyObject obj) => (bool)obj.GetValue(IsEnabledPorperty);
-        //public static void SetIsEnabled(DependencyObject obj, bool value) => obj.SetValue(IsEnabledPorperty, value);
-        //public static readonly DependencyProperty IsEnabledPorperty =
-        //DependencyProperty.RegisterAttached("IsEnabled", typeof(bool), typeof(Apng), new PropertyMetadata(IsEnabledPropertyChanged));
-
-        //private static void IsEnabledPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-        //{
-        //    bool enabled = GetIsEnabled(obj);
-        //    Image image = obj as Image;
-        //    ImageSource imagesource = image.Source;
-        //    if (enabled == true)
-        //    {
-
-        //    }
-        //    //    //var file = File.OpenRead("../../testapng/EL6J88-U0AIMTJb.png");
-
-        //    //    var image = obj as Image;
-        //    //    Type type = args.NewValue.GetType();
-        //    //    //var file = File.OpenRead();
-        //    //}
-        //}
+        
     }
 
-
+    public class ApngSource : BitmapSource
+    {
+        protected override Freezable CreateInstanceCore()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
