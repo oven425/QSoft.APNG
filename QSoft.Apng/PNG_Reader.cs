@@ -11,7 +11,12 @@ namespace QSoft.Apng
         public List<Chunk> Chunks { set; get; } = new List<Chunk>();
         byte[] m_PNGHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
         public IHDR IHDR { get { return this.Chunks.FirstOrDefault(x => x is IHDR) as IHDR; } }
-            
+        public IDAT iDAT()
+        {
+            IDAT idat = this.Chunks.FirstOrDefault(x => x is IDAT) as IDAT;
+            return idat;
+        }
+
         public Dictionary<fcTL, MemoryStream> SpltAPng()
         {
             Dictionary<fcTL, MemoryStream> pngs = new Dictionary<fcTL, MemoryStream>();
@@ -50,7 +55,7 @@ namespace QSoft.Apng
                                 {
                                     pngw_.WritetRNS(trns);
                                 }
-                                pngw_.WriteIDAT(mm.ToArray());
+                                pngw_.WriteIDAT(mm.ToArray(), (int)mm.Length);
                                 pngw_.WriteIEND();
                                 ms.Position = 0;
                                 pngs.Add(lastfctl, ms);
@@ -81,7 +86,7 @@ namespace QSoft.Apng
                             {
                                 pngw_.WritetRNS(trns);
                             }
-                            pngw_.WriteIDAT(mm.ToArray());
+                            pngw_.WriteIDAT(mm.ToArray(), (int)mm.Length);
                             pngw_.WriteIEND();
                             ms.Position = 0;
                             if(lastfctl != null)
@@ -128,7 +133,7 @@ namespace QSoft.Apng
                             ihdr.Size = len;
                             ParseIHDR(br, ihdr);
                             this.Chunks.Add(ihdr);
-                            //System.Diagnostics.Trace.WriteLine($"IHDR width:{ihdr.Width} height:{ihdr.Height}");
+                            System.Diagnostics.Trace.WriteLine($"IHDR width:{ihdr.Width} height:{ihdr.Height}");
                         }
                         break;
                     case "acTL":
@@ -140,7 +145,7 @@ namespace QSoft.Apng
                             actl.Num_Plays = br.ReadInt32LN();
                             actl.CRC = br.ReadBytes(4);
                             this.Chunks.Add(actl);
-                            //System.Diagnostics.Trace.WriteLine($"acTL num_frames:{actl.Num_Frames} num_plays:{actl.Num_Plays}");
+                            System.Diagnostics.Trace.WriteLine($"acTL num_frames:{actl.Num_Frames} num_plays:{actl.Num_Plays}");
                         }
                         break;
                     case "fcTL":
@@ -161,7 +166,7 @@ namespace QSoft.Apng
                             fcTL.Blend_op = (fcTL.Blends)blend;
                             fcTL.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fcTL);
-                            //System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{fcTL.SequenceNumber} x:{fcTL.X_Offset} y:{fcTL.Y_Offset} width:{fcTL.Width} height:{fcTL.Height} delay_num:{fcTL.Delay_Num} delay_den:{fcTL.Delay_Den}, Dispose:{fcTL.Dispose_op} Blend:{fcTL.Blend_op}");
+                            System.Diagnostics.Trace.WriteLine($"fcTL sequence_number:{fcTL.SequenceNumber} x:{fcTL.X_Offset} y:{fcTL.Y_Offset} width:{fcTL.Width} height:{fcTL.Height} delay_num:{fcTL.Delay_Num} delay_den:{fcTL.Delay_Den}, Dispose:{fcTL.Dispose_op} Blend:{fcTL.Blend_op}");
                         }
                         break;
                     case "fdAT":
@@ -173,7 +178,7 @@ namespace QSoft.Apng
                             fdat.Data = br.ReadBytes(len-4);
                             fdat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(fdat);
-                            //System.Diagnostics.Trace.WriteLine($"fdAT sequence_number:{fdat.SequenceNumber} len:{fdat.Size}");
+                            System.Diagnostics.Trace.WriteLine($"fdAT sequence_number:{fdat.SequenceNumber} len:{fdat.Size}");
                         }
                         break;
                     case "IDAT":
@@ -185,7 +190,7 @@ namespace QSoft.Apng
                             idat.Data = br.ReadBytes(len);
                             idat.CRC = br.ReadBytes(4);
                             this.Chunks.Add(idat);
-                            //System.Diagnostics.Trace.WriteLine($"IDAT len:{len}");
+                            System.Diagnostics.Trace.WriteLine($"IDAT len:{len}");
                         }
                         break;
                     case "IEND":
@@ -193,7 +198,7 @@ namespace QSoft.Apng
                             Chunk iend = new Chunk() { ChunkType = ChunkTypes.IEND };
                             iend.CRC = br.ReadBytes(4);
                             this.Chunks.Add(iend);
-                            //System.Diagnostics.Trace.WriteLine($"IEND len:{len} crc:{BitConverter.ToString(iend.CRC)}");
+                            System.Diagnostics.Trace.WriteLine($"IEND len:{len} crc:{BitConverter.ToString(iend.CRC)}");
                         }
                         break;
                     case "pHYs":
@@ -237,9 +242,43 @@ namespace QSoft.Apng
                             //System.Diagnostics.Trace.WriteLine($"tRNS len:{len} crc:{BitConverter.ToString(trns.CRC)}");
                         }
                         break;
+                    case "tEXt":
+                        {
+                            var buf = br.ReadBytes(len);
+
+                            int index = Array.IndexOf(buf, (byte)0);
+
+                            var str = Encoding.ASCII.GetString(buf, 0, index);
+
+                            Encoding iso = Encoding.GetEncoding("ISO-8859-1");
+                            var str1 = iso.GetString(buf, index + 1, buf.Length - index-1 );
+
+                            var crc = br.ReadBytes(4);
+                        }
+                        break;
+                    case "sRGB":
+                        {
+                            sRGB srgb = new sRGB();
+                            srgb.Pos = stream.Position;
+                            srgb.Size = len;
+                            srgb.Data = br.ReadByte();
+                            srgb.CRC = br.ReadBytes(4);
+                            this.Chunks.Add(srgb);
+                        }
+                        break;
+                    case "gAMA":
+                        {
+                            gAMA gama = new gAMA();
+                            gama.Pos = stream.Position;
+                            gama.Size = len;
+                            gama.Data = br.ReadUInt32LN();
+                            gama.CRC = br.ReadBytes(4);
+                            this.Chunks.Add(gama);
+                        }
+                        break;
                     default:
                         {
-                            //System.Diagnostics.Trace.WriteLine($"unknown {id}");
+                            System.Diagnostics.Trace.WriteLine($"unknown {id} len:{len}");
                             br.ReadBytes(len + 4);
                         }
                         break;

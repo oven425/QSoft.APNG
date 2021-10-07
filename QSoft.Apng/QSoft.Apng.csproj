@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Apng.cs" />
+    <Compile Include="ApngBuilder.cs" />
     <Compile Include="BinaryReader_Litten.cs" />
     <Compile Include="PNG_Reader.cs" />
     <Compile Include="PNG_Writer.cs" />

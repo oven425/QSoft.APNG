@@ -85,13 +85,13 @@ namespace QSoft.Apng
             this.m_Bw.Write(sss, 4, 4);
         }
 
-        public void WriteIDAT(byte[] data)
+        public void WriteIDAT(byte[] data, int len)
         {
             this.m_Temp.SetLength(0);
             BinaryWriter w = new BinaryWriter(this.m_Temp);
             byte[] sss = Encoding.UTF8.GetBytes("IDAT");
             w.Write(sss);
-            w.Write(data);
+            w.Write(data,0, len);
             byte[] bb = this.m_Temp.ToArray();
 
             this.m_Bw.WriteLN(bb.Length - 4);
@@ -120,7 +120,75 @@ namespace QSoft.Apng
             this.m_Bw.Write(sss, 4, 4);
         }
 
-        
+        public void WriteACTL(acTL data)
+        {
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
+            byte[] sss = Encoding.UTF8.GetBytes("acTL");
+            w.Write(sss);
+            w.WriteLN(data.Num_Frames);
+            w.WriteLN(data.Num_Plays);
+
+
+            byte[] bb = this.m_Temp.ToArray();
+
+            this.m_Bw.WriteLN(bb.Length - 4);
+            this.m_Bw.Write(bb);
+            CRC32Cls crc32 = new CRC32Cls();
+            ulong crc_ulong = crc32.GetCRC32Str(bb);
+            sss = BitConverter.GetBytes(crc_ulong);
+            Array.Reverse(sss);
+            this.m_Bw.Write(sss, 4, 4);
+        }
+
+        public void WriteFCTL(fcTL data)
+        {
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
+            byte[] sss = Encoding.UTF8.GetBytes("fcTL");
+            w.Write(sss);
+            w.WriteLN(data.SequenceNumber);
+            w.WriteLN(data.Width);
+            w.WriteLN(data.Height);
+            w.WriteLN(data.X_Offset);
+            w.WriteLN(data.Y_Offset);
+            w.WriteLN(data.Delay_Num);
+            w.WriteLN(data.Delay_Den);
+            w.Write((byte)data.Dispose_op);
+            w.Write((byte)data.Blend_op);
+
+
+
+
+            byte[] bb = this.m_Temp.ToArray();
+
+            this.m_Bw.WriteLN(bb.Length - 4);
+            this.m_Bw.Write(bb);
+            CRC32Cls crc32 = new CRC32Cls();
+            ulong crc_ulong = crc32.GetCRC32Str(bb);
+            sss = BitConverter.GetBytes(crc_ulong);
+            Array.Reverse(sss);
+            this.m_Bw.Write(sss, 4, 4);
+        }
+
+        public void WritefdAT(byte[] data, int len, int seq)
+        {
+            this.m_Temp.SetLength(0);
+            BinaryWriter w = new BinaryWriter(this.m_Temp);
+            byte[] sss = Encoding.UTF8.GetBytes("fdAT");
+            w.Write(sss);
+            w.WriteLN(seq);
+            w.Write(data, 0, len);
+            byte[] bb = this.m_Temp.ToArray();
+
+            this.m_Bw.WriteLN(bb.Length - 4);
+            this.m_Bw.Write(bb);
+            CRC32Cls crc32 = new CRC32Cls();
+            ulong crc_ulong = crc32.GetCRC32Str(bb);
+            sss = BitConverter.GetBytes(crc_ulong);
+            Array.Reverse(sss);
+            this.m_Bw.Write(sss, 4, 4);
+        }
     }
 
     class CRC32Cls

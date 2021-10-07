@@ -70,8 +70,8 @@ namespace QSoft.Apng
         public int Height { set; get; }
         public int X_Offset { set; get; }
         public int Y_Offset { set; get; }
-        public int Delay_Num { set; get; }
-        public int Delay_Den { set; get; }
+        public short Delay_Num { set; get; }
+        public short Delay_Den { set; get; }
         public Diposes Dispose_op { set; get; }
         public Blends Blend_op { set; get; }
 
@@ -146,6 +146,21 @@ namespace QSoft.Apng
         tRNS,
         IEND,
     }
+
+    public class sRGB : Chunk
+    {
+        //0: Perceptual
+        //1: Relative colorimetric
+        //2: Saturation
+        //3: Absolute colorimetric
+        public byte Data { set; get; }
+    }
+
+    public class gAMA : Chunk
+    {
+        public uint Data { set; get; }
+    }
+
     public class Chunk
     {
         public Chunk()
@@ -167,4 +182,6 @@ namespace QSoft.Apng
         public byte[] CRC { set; get; }
 
     }
+
+    
 }

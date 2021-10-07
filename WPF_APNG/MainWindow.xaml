@@ -9,7 +9,7 @@
         Loaded="Window_Loaded"
         Title="MainWindow" Height="450" Width="800">
     
-    <!--<Grid>
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
@@ -24,18 +24,6 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
         <local:ApngImage Source="elephant.png"/>
-    </Grid>-->
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Image x:Name="image_png" Stretch="None"/>
-        <Image Grid.Row="1">
-            <Image.Source>
-                <apngex:ApngSource/>
-            </Image.Source>
-        </Image>
     </Grid>
     
 </Window>
