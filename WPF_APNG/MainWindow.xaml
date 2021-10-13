@@ -12,18 +12,17 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
-        <Image x:Name="image_png" Stretch="None">
-        </Image>
-        <ComboBox Grid.Row="1" ItemsSource="{Binding Files}">
+        <Image x:Name="image_png" Stretch="None"/>
+        <Image x:Name="image" Source="heart.png" Grid.Row="1"/>
+        <!--<ComboBox Grid.Row="1" ItemsSource="{Binding Files}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}"/>
                 </DataTemplate>
             </ComboBox.ItemTemplate>
-        </ComboBox>
-        <local:ApngImage Source="elephant.png"/>
+        </ComboBox>-->
     </Grid>
     
 </Window>

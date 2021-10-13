@@ -34,11 +34,51 @@ namespace WPF_APNG
         Dictionary<fcTL, MemoryStream> m_Apng = new Dictionary<fcTL, MemoryStream>();
         Dictionary<fcTL, byte[]> m_Raws = new Dictionary<fcTL, byte[]>();
 
+        public Color GetPixelColor(BitmapSource bitmap, int x, int y)
+        {
+            Color color;
+            var bytesPerPixel = (bitmap.Format.BitsPerPixel + 7) / 8;
+            var bytes = new byte[bytesPerPixel];
+            var rect = new Int32Rect(x, y, 1, 1);
+
+            bitmap.CopyPixels(rect, bytes, bytesPerPixel, 0);
+
+            if (bitmap.Format == PixelFormats.Bgra32)
+            {
+                color = Color.FromArgb(bytes[3], bytes[2], bytes[1], bytes[0]);
+            }
+            else if (bitmap.Format == PixelFormats.Bgr32)
+            {
+                color = Color.FromRgb(bytes[2], bytes[1], bytes[0]);
+            }
+            // handle other required formats
+            else
+            {
+                color = Colors.Black;
+            }
+
+            return color;
+        }
+
         MainUI m_MainUI = null;
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             if(this.m_MainUI == null)
             {
+                BitmapSource bmp = image.Source as BitmapSource;
+
+                if(bmp.Format != PixelFormats.Bgr32)
+                {
+                    FormatConvertedBitmap newFormatedBitmapSource = new FormatConvertedBitmap();
+                    newFormatedBitmapSource.BeginInit();
+                    newFormatedBitmapSource.Source = bmp;
+                    newFormatedBitmapSource.DestinationFormat = PixelFormats.Bgra32;
+                    newFormatedBitmapSource.EndInit();
+                    bmp = newFormatedBitmapSource;
+                }
+                
+                GetPixelColor(bmp, 251, 44);
+
                 DirectoryInfo dir = new DirectoryInfo("../../testapng");
                 var files =  dir.GetFiles();
                 this.m_MainUI = new MainUI();
