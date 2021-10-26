@@ -88,11 +88,11 @@ namespace QSoft.Apng.WPF
         
     }
 
-    public class ApngSource : BitmapSource
-    {
-        protected override Freezable CreateInstanceCore()
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //public class ApngSource : BitmapSource
+    //{
+    //    protected override Freezable CreateInstanceCore()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

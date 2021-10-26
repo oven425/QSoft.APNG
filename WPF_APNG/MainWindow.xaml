@@ -13,9 +13,13 @@
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
         <Image x:Name="image_png" Stretch="None"/>
         <Image x:Name="image" Source="heart.png" Grid.Row="1"/>
+        <Image x:Name="image1" Grid.Row="2">
+            
+        </Image>
         <!--<ComboBox Grid.Row="1" ItemsSource="{Binding Files}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>

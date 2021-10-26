@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define PngBuild
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -34,6 +35,17 @@ namespace WPF_APNG
         Dictionary<fcTL, MemoryStream> m_Apng = new Dictionary<fcTL, MemoryStream>();
         Dictionary<fcTL, byte[]> m_Raws = new Dictionary<fcTL, byte[]>();
 
+        public WriteableBitmap Clone(BitmapSource bitmap)
+        {
+            WriteableBitmap wb = new WriteableBitmap(bitmap.PixelWidth,bitmap.PixelHeight, bitmap.DpiX, bitmap.DpiY, bitmap.Format, bitmap.Palette);
+            var rect = new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight);
+            var bytesPerPixel = (bitmap.Format.BitsPerPixel + 7) / 8;
+            var bytes = new byte[bytesPerPixel* bitmap.PixelWidth* bitmap.PixelHeight];
+            bitmap.CopyPixels(rect, bytes, bytesPerPixel* bitmap.PixelWidth, 0);
+            wb.WritePixels(rect, bytes, bytesPerPixel * bitmap.PixelWidth, 0);
+            return wb;
+        }
+
         public Color GetPixelColor(BitmapSource bitmap, int x, int y)
         {
             Color color;
@@ -66,7 +78,7 @@ namespace WPF_APNG
             if(this.m_MainUI == null)
             {
                 BitmapSource bmp = image.Source as BitmapSource;
-
+                
                 if(bmp.Format != PixelFormats.Bgr32)
                 {
                     FormatConvertedBitmap newFormatedBitmapSource = new FormatConvertedBitmap();
@@ -78,7 +90,8 @@ namespace WPF_APNG
                 }
                 
                 GetPixelColor(bmp, 251, 44);
-
+                var wb = this.Clone(bmp);
+                this.image1.Source = wb;
                 DirectoryInfo dir = new DirectoryInfo("../../testapng");
                 var files =  dir.GetFiles();
                 this.m_MainUI = new MainUI();
@@ -128,13 +141,13 @@ namespace WPF_APNG
             //    File.WriteAllBytes($"{i}.png", pngs.ElementAt(i).Value.ToArray());
             //}
 
-            var pngs_1 = Directory.GetFiles(".", "*.png").OrderBy(x => int.Parse(x.Replace(".\\", "").Replace(".png", "")));
+            //var pngs_1 = Directory.GetFiles(".", "*.png").OrderBy(x => int.Parse(x.Replace(".\\", "").Replace(".png", "")));
             
-            ApngBuilder apngbuild = new ApngBuilder();
+            //ApngBuilder apngbuild = new ApngBuilder();
             
-            var apngstream = apngbuild.Build(pngs_1, TimeSpan.FromSeconds(10));
-            apngstream.Position = 0;
-            apngstream.CopyTo(File.Create("test.png"));
+            //var apngstream = apngbuild.Build(pngs_1, TimeSpan.FromSeconds(10));
+            //apngstream.Position = 0;
+            //apngstream.CopyTo(File.Create("test.png"));
         }
 
         private void Storyboard_CurrentTimeInvalidated(object sender, EventArgs e)
