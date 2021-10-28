@@ -1,4 +1,4 @@
-﻿#define PngBuild
+﻿#define TestBuild
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -40,11 +40,46 @@ namespace WPF_APNG
             WriteableBitmap wb = new WriteableBitmap(bitmap.PixelWidth,bitmap.PixelHeight, bitmap.DpiX, bitmap.DpiY, bitmap.Format, bitmap.Palette);
             var rect = new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight);
             var bytesPerPixel = (bitmap.Format.BitsPerPixel + 7) / 8;
-            var bytes = new byte[bytesPerPixel* bitmap.PixelWidth* bitmap.PixelHeight];
-            bitmap.CopyPixels(rect, bytes, bytesPerPixel* bitmap.PixelWidth, 0);
+            //var bytes = new byte[bytesPerPixel* bitmap.PixelWidth* bitmap.PixelHeight];
+            //bitmap.CopyPixels(rect, bytes, bytesPerPixel* bitmap.PixelWidth, 0);
+            var bytes = Copy(bitmap);
             wb.WritePixels(rect, bytes, bytesPerPixel * bitmap.PixelWidth, 0);
             return wb;
         }
+
+        public WriteableBitmap Clone(BitmapSource bitmap, byte[] data)
+        {
+            WriteableBitmap wb = new WriteableBitmap(bitmap.PixelWidth, bitmap.PixelHeight, bitmap.DpiX, bitmap.DpiY, bitmap.Format, bitmap.Palette);
+            var rect = new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight);
+            var bytesPerPixel = (bitmap.Format.BitsPerPixel + 7) / 8;
+            wb.WritePixels(rect, data, bytesPerPixel * bitmap.PixelWidth, 0);
+            return wb;
+        }
+
+        public byte[] Copy(BitmapSource bitmap)
+        {
+            var rect = new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight);
+            var bytesPerPixel = (bitmap.Format.BitsPerPixel + 7) / 8;
+            var bytes = new byte[bytesPerPixel * bitmap.PixelWidth * bitmap.PixelHeight];
+            bitmap.CopyPixels(rect, bytes, bytesPerPixel * bitmap.PixelWidth, 0);
+            return bytes;
+        }
+
+        public List<Tuple<Point, Color>> CopyToColor(BitmapSource bitmap)
+        {
+            List<Tuple<Point, Color>> colors = new List<Tuple<Point, Color>>();
+            var buf = this.Copy(bitmap);
+            for(int i=0; i< buf.Length; i=i+4)
+            {
+                int x = i % bitmap.PixelWidth;
+                int y = i / bitmap.PixelWidth/4;
+                Point pt = new Point(x, y);
+                Color color = Color.FromArgb(buf[i+3], buf[i+2], buf[i+1], buf[i+0]);
+                colors.Add(Tuple.Create<Point,Color>(pt,color));
+            }
+            return colors;
+        }
+
 
         public Color GetPixelColor(BitmapSource bitmap, int x, int y)
         {
@@ -63,7 +98,6 @@ namespace WPF_APNG
             {
                 color = Color.FromRgb(bytes[2], bytes[1], bytes[0]);
             }
-            // handle other required formats
             else
             {
                 color = Colors.Black;
@@ -77,21 +111,75 @@ namespace WPF_APNG
         {
             if(this.m_MainUI == null)
             {
-                BitmapSource bmp = image.Source as BitmapSource;
+                BitmapSource bmp_1 = image_1.Source as BitmapSource;
+                BitmapSource bmp_2 = image_2.Source as BitmapSource;
+                //if (bmp_1.Format != PixelFormats.Bgr32)
+                //{
+                //    FormatConvertedBitmap newFormatedBitmapSource = new FormatConvertedBitmap();
+                //    newFormatedBitmapSource.BeginInit();
+                //    newFormatedBitmapSource.Source = bmp_1;
+                //    newFormatedBitmapSource.DestinationFormat = PixelFormats.Bgra32;
+                //    newFormatedBitmapSource.EndInit();
+                //    bmp_1 = newFormatedBitmapSource;
+                //}
+                var b1 = this.CopyToColor(bmp_1);
+                var b2 = this.CopyToColor(bmp_2);
+                List<byte> b3 = new List<byte>();
+                //var b3 = new byte[this.Copy(bmp_1).Length];
+                Point begin = new Point(double.MaxValue, double.MaxValue);
+                Point end = new Point(double.MinValue, double.MinValue);
                 
-                if(bmp.Format != PixelFormats.Bgr32)
+                for (int i=0; i<b1.Count; i++)
                 {
-                    FormatConvertedBitmap newFormatedBitmapSource = new FormatConvertedBitmap();
-                    newFormatedBitmapSource.BeginInit();
-                    newFormatedBitmapSource.Source = bmp;
-                    newFormatedBitmapSource.DestinationFormat = PixelFormats.Bgra32;
-                    newFormatedBitmapSource.EndInit();
-                    bmp = newFormatedBitmapSource;
+                    if (b2[i].Item2 != b1[i].Item2)
+                    {
+                        if(begin.X > b2[i].Item1.X)
+                        {
+                            begin.X = b2[i].Item1.X;
+                        }
+                        if (begin.Y > b2[i].Item1.Y)
+                        {
+                            begin.Y = b2[i].Item1.Y;
+                        }
+                        if (end.X < b2[i].Item1.X)
+                        {
+                            end.X = b2[i].Item1.X;
+                        }
+                        if (end.Y < b2[i].Item1.Y)
+                        {
+                            end.Y = b2[i].Item1.Y;
+                        }
+                        b3.Add(b2[i].Item2.B);
+                        b3.Add(b2[i].Item2.G);
+                        b3.Add(b2[i].Item2.R);
+                        b3.Add(b2[i].Item2.A);
+                        //b3[i * 4 + 0] = b2[i].Item2.B;
+                        //b3[i * 4 + 1] = b2[i].Item2.G;
+                        //b3[i * 4 + 2] = b2[i].Item2.R;
+                        //b3[i * 4 + 3] = b2[i].Item2.A;
+                    }
                 }
+                var bytesPerPixel = (bmp_1.Format.BitsPerPixel + 7) / 8;
                 
-                GetPixelColor(bmp, 251, 44);
-                var wb = this.Clone(bmp);
-                this.image1.Source = wb;
+                int w = (int)(end.X - begin.X);
+                int h = (int)(end.Y - begin.Y);
+                int pos_begin = (int)(begin.X + begin.Y * bmp_1.PixelWidth*4);
+                int pos_end = (int)(end.X + end.Y * bmp_1.PixelWidth*4);
+                
+                var stride = bytesPerPixel * w;
+                var b4 = new byte[pos_end - pos_begin];
+                Array.Copy(this.Copy(bmp_2), pos_begin, b4, 0, stride*h);
+                BitmapSource bmp = BitmapSource.Create(w, h, 96, 96, bmp_1.Format, null, b4, stride);
+                PngBitmapEncoder pnge = new PngBitmapEncoder();
+                var frame = BitmapFrame.Create(bmp, null, null, null);
+                pnge.Frames.Add(frame);
+                pnge.Save(File.Create("AA.png"));
+                //BitmapSource bmp = BitmapSource.Create(bmp_1.PixelWidth, bmp_1.PixelHeight, 96, 96, bmp_1.Format, null, b3.ToArray(), stride);
+                //var wb = this.Clone(bmp_1, b3.ToArray());
+
+
+                //var wb = this.Clone(bmp_2);
+                //this.image1.Source = wb;
                 DirectoryInfo dir = new DirectoryInfo("../../testapng");
                 var files =  dir.GetFiles();
                 this.m_MainUI = new MainUI();
@@ -140,14 +228,16 @@ namespace WPF_APNG
             //{
             //    File.WriteAllBytes($"{i}.png", pngs.ElementAt(i).Value.ToArray());
             //}
+#if TestBuild
+            //var pngs_1 = Directory.GetFiles(".", "*.png");
+            ////var pngs_1 = Directory.GetFiles(".", "*.png").OrderBy(x => int.Parse(x.Replace(".\\", "").Replace(".png", "")));
 
-            //var pngs_1 = Directory.GetFiles(".", "*.png").OrderBy(x => int.Parse(x.Replace(".\\", "").Replace(".png", "")));
-            
             //ApngBuilder apngbuild = new ApngBuilder();
-            
+
             //var apngstream = apngbuild.Build(pngs_1, TimeSpan.FromSeconds(10));
             //apngstream.Position = 0;
             //apngstream.CopyTo(File.Create("test.png"));
+#endif
         }
 
         private void Storyboard_CurrentTimeInvalidated(object sender, EventArgs e)
