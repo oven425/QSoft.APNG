@@ -106,6 +106,31 @@ namespace WPF_APNG
             return color;
         }
 
+        public void Clip1(BitmapSource bitmap, Rect clip)
+        {
+            byte[] src = this.Copy(bitmap);
+            int w = bitmap.PixelWidth;
+            int h = bitmap.PixelHeight;
+            int begin = (int)(clip.X * 4 * clip.Y);
+            int end = (int)((clip.X+clip.Width) * 4 * (clip.Y+clip.Height));
+            byte[] dst = new byte[end - begin];
+            Array.Copy(src, begin, dst, 0, dst.Length);
+            for(int i=0; i< dst.Length; i++)
+            {
+                if(src[begin+i] != dst[i])
+                {
+                    break;
+                }
+            }
+            File.WriteAllBytes("AA", dst);
+
+            BitmapSource bmp = BitmapSource.Create((int)clip.Width, (int)clip.Height, 96, 96, bitmap.Format, null, dst, (int)(4* clip.Width));
+            PngBitmapEncoder pnge = new PngBitmapEncoder();
+            var frame = BitmapFrame.Create(bmp, null, null, null);
+            pnge.Frames.Add(frame);
+            pnge.Save(File.Create("AA.png"));
+        }
+
         MainUI m_MainUI = null;
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -113,6 +138,9 @@ namespace WPF_APNG
             {
                 BitmapSource bmp_1 = image_1.Source as BitmapSource;
                 BitmapSource bmp_2 = image_2.Source as BitmapSource;
+
+                this.Clip1(bmp_1, new Rect(0, 0, 73, 73));
+
                 //if (bmp_1.Format != PixelFormats.Bgr32)
                 //{
                 //    FormatConvertedBitmap newFormatedBitmapSource = new FormatConvertedBitmap();
