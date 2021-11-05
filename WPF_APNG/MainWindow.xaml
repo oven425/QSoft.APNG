@@ -17,7 +17,7 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Image x:Name="image_png" Stretch="None"/>
-        <Image x:Name="image_1" Source="0.png" Grid.Row="1"/>
+        <Image x:Name="image_1" Source="test.png" Grid.Row="1"/>
         <Image x:Name="image_2" Source="1.png" Grid.Row="2"/>
         <Image x:Name="image1" Grid.Row="3">
             

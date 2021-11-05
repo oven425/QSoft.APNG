@@ -115,38 +115,35 @@ namespace WPF_APNG
             int end = (int)((clip.X+clip.Width) * 4 * (clip.Y+clip.Height));
             byte[] dst = new byte[end - begin];
             byte[] dst1 = new byte[end - begin];
-            Array.Copy(src, begin, dst1, 0, dst.Length);
             
+            int stride_org = bitmap.Format.BitsPerPixel * (int)bitmap.PixelWidth / 8;
             int stride = bitmap.Format.BitsPerPixel * (int)clip.Width / 8;
-            bitmap.CopyPixels(clip, dst, stride, 0);
-            for (int i = 0; i < dst.Length; i++)
-            {
-                if (src[i] != dst[i])
-                {
-                    System.Diagnostics.Trace.WriteLine($"dst:{dst[i]} dst1:{dst1[i]} {i}");
-                    //break;
-                }
-            }
-            //Array.Clear(dst, 0, dst.Length);
-            //for(int i=0; i< dst.Length/2; i=i+4)
-            //{
-            //    dst[i] = 255;
-            //    dst[i + 1] = 255;
-            //    dst[i + 2] = 255;
-            //    dst[i + 3] = 255;
-            //}
+            int index = 0;
 
-            BitmapSource bmp = BitmapSource.Create((int)clip.Width, (int)clip.Height, 96, 96, bitmap.Format, null, dst, stride);
+            for (int y = clip.Y; y<clip.Y+ clip.Height;y++)
+            {
+                int begin1 = clip.X * 4 + y* stride_org;
+                //System.Diagnostics.Trace.WriteLine($"begin1:{begin1}");
+                Array.Copy(src, begin1, dst1, index, stride);
+                index = index + stride;
+            }
+            File.WriteAllBytes("AA", dst1);
+            
+            bitmap.CopyPixels(clip, dst, stride, 0);
+
+            File.WriteAllBytes("BB", dst);
+
+            BitmapSource bmp = BitmapSource.Create((int)clip.Width, (int)clip.Height, 96, 96, bitmap.Format, null, dst1, stride);
             var frame = BitmapFrame.Create(bmp, null, null, null);
 
 
-            //BitmapEncoder bmpe = new BmpBitmapEncoder();
-            //bmpe.Frames.Add(frame);
-            //bmpe.Save(File.Create("AA.bmp"));
+            BitmapEncoder bmpe = new BmpBitmapEncoder();
+            bmpe.Frames.Add(frame);
+            bmpe.Save(File.Create("AA.bmp"));
 
-            PngBitmapEncoder pnge = new PngBitmapEncoder();
-            pnge.Frames.Add(frame);
-            pnge.Save(File.Create("AA.png"));
+            //PngBitmapEncoder pnge = new PngBitmapEncoder();
+            //pnge.Frames.Add(frame);
+            //pnge.Save(File.Create("AA.png"));
 
         }
 
@@ -158,7 +155,7 @@ namespace WPF_APNG
                 BitmapSource bmp_1 = image_1.Source as BitmapSource;
                 BitmapSource bmp_2 = image_2.Source as BitmapSource;
 
-                this.Clip1(bmp_1, new Int32Rect(0, 0, 74, 74));
+                this.Clip1(bmp_1, new Int32Rect(0, 0, 70,70));
 
                 //if (bmp_1.Format != PixelFormats.Bgr32)
                 //{
